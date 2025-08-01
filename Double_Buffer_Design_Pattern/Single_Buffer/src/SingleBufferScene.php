@@ -12,9 +12,7 @@ class SingleBufferScene{
 
     public function draw():void{
         $this->buffer->clear();
-        // Draw a simple smiley face
-        // Eyes
-
+        // drawing a square.. 
         for($x=3;$x<=7;$x++){
             for($y=3;$y<=7;$y++){
                 $this->buffer->draw($x,$y);
