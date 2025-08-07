@@ -1,0 +1,55 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background: url('https://www.transparenttextures.com/patterns/dark-stone-wall.png'), #1a202c;
+}
+
+.font-fantasy {
+    font-family: 'MedievalSharp', cursive;
+}
+
+.wizard-card {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    background-color: rgba(26, 32, 44, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease-in-out;
+}
+
+.health-bar-bg {
+    background-color: #4a5568;
+}
+
+.health-bar {
+    transition: width 0.5s ease-in-out;
+}
+
+.game-log {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.spell-btn {
+    transition: all 0.2s ease;
+}
+
+.spell-btn:disabled {
+    cursor: not-allowed;
+    filter: grayscale(80%);
+}
+
+.spell-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(236, 201, 75, 0.3);
+}
+
+/* Casting animation */
+.is-casting {
+    animation: screen-flash 0.7s ease-out;
+}
+
+@keyframes screen-flash {
+    0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+    50% { box-shadow: 0 0 20px 30px rgba(255, 255, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+}

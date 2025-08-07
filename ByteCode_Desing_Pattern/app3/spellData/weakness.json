@@ -1,0 +1,12 @@
+{
+  "name": "Weakness",
+  "description": "Reduce opponent's agility by 2",
+  "instructions": [
+    { "code": "LITERAL", "value": 1 },
+    { "code": "GET_AGILITY" },
+    { "code": "LITERAL", "value": 2 },
+    { "code": "SUBTRACT" },
+    { "code": "LITERAL", "value": 1 },
+    { "code": "SET_AGILITY" }
+  ]
+}

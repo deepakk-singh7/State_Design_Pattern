@@ -1,0 +1,12 @@
+{
+  "name": "Heal Self",
+  "description": "Restore 20 health points to yourself",
+  "instructions": [
+    { "code": "LITERAL", "value": 0 },
+    { "code": "GET_HEALTH" },
+    { "code": "LITERAL", "value": 20 },
+    { "code": "ADD" },
+    { "code": "LITERAL", "value": 0 },
+    { "code": "SET_HEALTH" }
+  ]
+}

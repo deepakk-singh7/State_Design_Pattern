@@ -1,0 +1,12 @@
+{
+  "name": "Fireball",
+  "description": "Deals 15 damage to the opponent (wizard 1)",
+  "instructions": [
+    { "code": "LITERAL", "value": 1 },
+    { "code": "GET_HEALTH" },
+    { "code": "LITERAL", "value": 15 },
+    { "code": "SUBTRACT" },
+    { "code": "LITERAL", "value": 1 },
+    { "code": "SET_HEALTH" }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Meteor",
+  "description": "Powerful spell: Deal 25 damage but reduce your own wisdom by 2",
+  "instructions": [
+    { "code": "LITERAL", "value": 1 },
+    { "code": "GET_HEALTH" },
+    { "code": "LITERAL", "value": 25 },
+    { "code": "SUBTRACT" },
+    { "code": "LITERAL", "value": 1 },
+    { "code": "SET_HEALTH" },
+    { "code": "LITERAL", "value": 0 },
+    { "code": "GET_WISDOM" },
+    { "code": "LITERAL", "value": 2 },
+    { "code": "SUBTRACT" },
+    { "code": "LITERAL", "value": 0 },
+    { "code": "SET_WISDOM" }
+  ]
+}

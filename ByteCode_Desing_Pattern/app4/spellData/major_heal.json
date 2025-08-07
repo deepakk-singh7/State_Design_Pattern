@@ -1,0 +1,15 @@
+{
+  "name": "Major Heal",
+  "description": "Restore health equal to your wisdom + 10",
+  "instructions": [
+    { "code": "LITERAL", "value": 0 },
+    { "code": "GET_HEALTH" },
+    { "code": "LITERAL", "value": 0 },
+    { "code": "GET_WISDOM" },
+    { "code": "LITERAL", "value": 10 },
+    { "code": "ADD" },
+    { "code": "ADD" },
+    { "code": "LITERAL", "value": 0 },
+    { "code": "SET_HEALTH" }
+  ]
+}

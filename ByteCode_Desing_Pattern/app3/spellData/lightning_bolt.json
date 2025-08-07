@@ -1,0 +1,16 @@
+{
+  "name": "Lightning Bolt",
+  "description": "Deals damage equal to own wisdom + own agility to the opponent (wizard 1)",
+  "instructions": [
+    { "code": "LITERAL", "value": 1 },
+    { "code": "GET_HEALTH" },
+    { "code": "LITERAL", "value": 0 },
+    { "code": "GET_WISDOM" },
+    { "code": "LITERAL", "value": 0 },
+    { "code": "GET_AGILITY" },
+    { "code": "ADD" },
+    { "code": "SUBTRACT" },
+    { "code": "LITERAL", "value": 1 },
+    { "code": "SET_HEALTH" }
+  ]
+}
