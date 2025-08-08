@@ -2,11 +2,11 @@
   "name": "Agility Boost",
   "description": "Increase your agility by 3",
   "instructions": [
-    { "code": "LITERAL", "value": 0 },
+    { "code": "LITERAL", "value": 1 },
     { "code": "GET_AGILITY" },
     { "code": "LITERAL", "value": 3 },
     { "code": "ADD" },
-    { "code": "LITERAL", "value": 0 },
+    { "code": "LITERAL", "value": 1 },
     { "code": "SET_AGILITY" }
   ]
 }

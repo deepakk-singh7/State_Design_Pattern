@@ -2,16 +2,16 @@
   "name": "Arcane Missile",
   "description": "Deal damage equal to your wisdom * 1.5 (rounded down)",
   "instructions": [
-    { "code": "LITERAL", "value": 1 },
-    { "code": "GET_HEALTH" },
     { "code": "LITERAL", "value": 0 },
+    { "code": "GET_HEALTH" },
+    { "code": "LITERAL", "value": 1 },
     { "code": "GET_WISDOM" },
     { "code": "LITERAL", "value": 3 },
     { "code": "MULTIPLY" },
     { "code": "LITERAL", "value": 2 },
     { "code": "DIVIDE" },
     { "code": "SUBTRACT" },
-    { "code": "LITERAL", "value": 1 },
+    { "code": "LITERAL", "value": 0 },
     { "code": "SET_HEALTH" }
   ]
 }

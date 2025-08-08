@@ -35,8 +35,6 @@ $gandalfSpells = [
     'Wisdom Boost' => $compiler->compile(__DIR__ . '/spellData/wisdom_boost.json'),
     'Lightning Bolt' => $compiler->compile(__DIR__ . '/spellData/lightning_bolt.json'),
     'Heal Self' => $compiler->compile(__DIR__ . '/spellData/heal_self.json'),
-    'Power Surge' => $compiler->compile(__DIR__ . '/spellData/power_surge.json'),
-    'Ice Shard' => $compiler->compile(__DIR__ . '/spellData/ice_shard.json'),
     'Drain Wisdom' => $compiler->compile(__DIR__ . '/spellData/drain_wisdom.json'),
 ];
 
@@ -45,7 +43,6 @@ $dumbledoreSpells = [
     'Agility Boost' => $compiler->compile(__DIR__ . '/spellData/agility_boost.json'),
     'Arcane Missile' => $compiler->compile(__DIR__ . '/spellData/arcane_missile.json'),
     'Life Steal' => $compiler->compile(__DIR__ . '/spellData/life_steal.json'),
-    'Meteor' => $compiler->compile(__DIR__ . '/spellData/meteor.json'),
 ];
 
 

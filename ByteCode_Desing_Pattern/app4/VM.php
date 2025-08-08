@@ -32,13 +32,19 @@ class VM {
 
                 // --- Getters ---
                 case Instruction::GET_HEALTH:
-                    $this->push($this->game->getHealth($this->pop()));
+                    $wizardId = $this->pop();
+                    $health = $this->game->getHealth($wizardId);
+                    $this->push($health);
                     break;
                 case Instruction::GET_WISDOM:
-                    $this->push($this->game->getWisdom($this->pop()));
+                    $wizardId = $this->pop();
+                    $wisdom = $this->game->getWisdom($wizardId);
+                    $this->push($wisdom);
                     break;    
                 case Instruction::GET_AGILITY:
-                    $this->push($this->game->getAgility($this->pop()));
+                    $wizardId = $this->pop();
+                    $agility = $this->game->getAgility($wizardId);
+                    $this->push($agility);
                     break;
 
                 // --- Setters ---
@@ -51,18 +57,37 @@ class VM {
                     $this->game->setHealth($wizardId, $value);
                     $targetName = $this->game->getName($wizardId);
                     $diff = abs($oldValue - $value);
-                    if ($value < $oldValue) $this->game->addToLog("{$targetName} takes {$diff} damage.");
-                    else if ($value > $oldValue) $this->game->addToLog("{$targetName} heals for {$diff}.");
+                    if ($value < $oldValue) {
+                        $this->game->addToLog("{$targetName} takes {$diff} damage.");
+                    } else if ($value > $oldValue) {
+                        $this->game->addToLog("{$targetName} heals for {$diff}.");
+                    }
                     break;
                 case Instruction::SET_WISDOM:
                     $wizardId = $this->pop();
                     $value = $this->pop();
+                    $oldValue = $this->game->getWisdom($wizardId);
                     $this->game->setWisdom($wizardId, $value);
+                    $targetName = $this->game->getName($wizardId);
+                    $diff = $value - $oldValue;
+                    if ($diff > 0) {
+                        $this->game->addToLog("{$targetName} gains {$diff} wisdom.");
+                    } else if ($diff < 0) {
+                        $this->game->addToLog("{$targetName} loses {abs($diff)} wisdom.");
+                    }
                     break;    
                 case Instruction::SET_AGILITY:
                     $wizardId = $this->pop();
                     $value = $this->pop();
+                    $oldValue = $this->game->getAgility($wizardId);
                     $this->game->setAgility($wizardId, $value);
+                    $targetName = $this->game->getName($wizardId);
+                    $diff = $value - $oldValue;
+                    if ($diff > 0) {
+                        $this->game->addToLog("{$targetName} gains {$diff} agility.");
+                    } else if ($diff < 0) {
+                        $this->game->addToLog("{$targetName} loses {abs($diff)} agility.");
+                    }
                     break;    
 
                 // --- Arithmetic ---
@@ -106,18 +131,8 @@ class VM {
 
     private function pop(): int {
         if (empty($this->stack)) {
-            // This is the error you were seeing.
             throw new \Exception("Stack Underflow.");
         }
         return array_pop($this->stack);
     }
 }
-// ```
-
-// ### Why This Fixes the Problem
-
-// The original code had some arithmetic operations like `$this->pop() + $this->pop()`. The order in which PHP executes these two `pop()` calls isn't guaranteed, which can corrupt the stack.
-
-// The corrected code ensures that for every operation, values are popped off the stack one by one, in the correct LIFO order, and stored in variables before any calculation happens. This makes the VM stable and predictable.
-
-// After replacing `VM.php` with this new code, your game should run without any erro
