@@ -2,18 +2,17 @@
 
 require_once 'FrameBuffer.php';
 class VideoDriver{
-    private int $scanPosition = 0; # This controls the tearing!
+    private int $scanPosition = 0; # This controls the tearing...
 
     public function readPixels(FrameBuffer $buffer):array{
         $pixels = $buffer->getPixels();
         $result = [];
         
-        for($i = 0; $i < $this->scanPosition && $i < count($pixels); $i++){
+        for($i = 0; $i < count($pixels); $i++){
             $result[] = $pixels[$i];
         }
 
         // fill the remaining with the White
-
         while(count($result)<count($pixels)){
             $result[]= '.';
         }
