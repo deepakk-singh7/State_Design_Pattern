@@ -111,46 +111,6 @@ switch ($action) {
         echo json_encode($state);
         break;
 
-    case 'ai_turn':
-        // Optional: Allow AI to make a move if it's AI's turn
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            http_response_code(405);
-            echo json_encode(['error' => 'Method Not Allowed']);
-            exit;
-        }
-
-        if ($game->isOver()) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Game is already over!']);
-            exit;
-        }
-
-        // For now, let's assume player 1 is AI (you can modify this logic)
-        if ($currentTurn === 1) {
-            $opponentSpells = $spells[1];
-            $opponentSpellNames = array_keys($opponentSpells);
-            $opponentSpellName = $opponentSpellNames[array_rand($opponentSpellNames)];
-            $opponentBytecode = $opponentSpells[$opponentSpellName];
-            $vm->interpret($opponentBytecode, 1, $opponentSpellName);
-
-            // Switch turn back to player
-            if (!$game->isOver()) {
-                $_SESSION['current_turn'] = 0;
-            }
-        }
-
-        $_SESSION['game'] = serialize($game);
-
-        $state = $game->getState();
-        $state['spells'] = [
-            0 => array_keys($spells[0]),
-            1 => array_keys($spells[1]),
-        ];
-        $state['currentTurn'] = $_SESSION['current_turn'];
-
-        echo json_encode($state);
-        break;
-
     default:
         http_response_code(400);
         echo json_encode(['error' => 'Invalid action specified.']);

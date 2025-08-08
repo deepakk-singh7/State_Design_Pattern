@@ -73,9 +73,7 @@ function renderGame(state) {
     const wizardsHtml = state.wizards.map((wizard, id) => {
         const isActive = id === currentTurn && !state.isOver;
         const spells = state.spells[id];
-        
-        // **MODIFICATION**: Removed health bar HTML
-        return `
+                return `
             <div class="wizard ${isActive ? 'active' : ''}">
                 <h2>${wizard.Name}</h2>
                 <div class="stats">

@@ -1,19 +1,58 @@
 <?php 
 
+/**
+ * VM (Virtual Machine) for the Wizard Duel Game.
+ *
+ * This file defines the stack-based virtual machine responsible for interpreting
+ * and executing spell bytecode. It interacts directly with the Game state.
+ */
+
 require_once 'Instruction.php';
 require_once 'Game.php';
 
 class VM {
+
+    /**
+     * A reference to the main game object.
+     * @var Game
+     */
     private Game $game; 
 
+    // The maximum number of values that can be stored on the stack.
     private const STACK_SIZE = 128;
+
+    /**
+     * The internal stack for the VM's operations.
+     * Values (literals, stats) are pushed onto and popped off this stack.
+     *
+     * @var int[]
+     */
     private array $stack = [];
 
+
+    /**
+     * VM constructor.
+     *
+     * Injects the Game dependency, giving the VM access to the game state.
+     *
+     * @param Game $game The active game instance.
+     */
     public function __construct(Game $game) {
         $this->game = $game;
     }
 
-    // The interpret function 
+    /**
+     * Interprets and executes a given array of bytecode.
+     *
+     * This is the main loop of the VM. It iterates through each instruction
+     * and performs the corresponding action.
+     *
+     * @param int[]  $byteCode   The array of compiled instructions to execute.
+     * @param string $casterName The name of the wizard casting the spell.
+     * @param string $spellName  The name of the spell being cast.
+     * @return void
+     * @throws \Exception If the bytecode is invalid or a runtime error occurs (e.g., division by zero).
+     */
     public function interpret(array $byteCode, string $casterName, string $spellName): void {
         echo "---\n {$casterName} cast {$spellName} spell -----\n" . PHP_EOL;
         $length = count($byteCode);
@@ -21,13 +60,12 @@ class VM {
             $instruction = $byteCode[$i];
 
             switch ($instruction) {
-                // Data
+                // --- Data Retrieval Instructions ---
                 case Instruction::LITERAL:
                     if ($i + 1 >= $length) {
                         throw new \Exception("Invalid bytecode: LITERAL missing value");
                     }
                     $i++;
-                    // Changed to use the push() method for consistency
                     $this->push($byteCode[$i]); 
                     break;
                 case Instruction::GET_HEALTH:
@@ -44,7 +82,7 @@ class VM {
                 case Instruction::GET_AGILITY:
                     $this->push($this->game->getAgility($this->pop()));
                     break;
-                // Setters
+                // --- State Modification Instructions ---
                 case Instruction::SET_HEALTH:
                     $wizardId = $this->pop();    // Pop wizard ID first
                     $health = $this->pop();      // Then pop health value
@@ -60,7 +98,7 @@ class VM {
                     $agility = $this->pop();
                     $this->game->setAgility($wizardId, $agility);
                     break;    
-                // Arithmetic
+                // --- Arithmetic Instructions ---
                 case Instruction::ADD:
                     $b = $this->pop();
                     $a = $this->pop();
@@ -89,21 +127,31 @@ class VM {
         }
     }
 
-    // BUG FIX 2: Moved push() and pop() INSIDE the class definition
-
+    /**
+     * Pushes a value onto the stack.
+     *
+     * @param int $data The integer value to push.
+     * @return void
+     * @throws \Exception If the stack is full (Stack Overflow).
+     */
     private function push(int $data): void {
         if (self::STACK_SIZE === count($this->stack)) {
             throw new \Exception("Stack Overflow.");
         }
-        // BUG FIX 3: Changed self::$stack to $this->stack
         $this->stack[] = $data;
     }
+
+    /**
+     * Pops a value from the stack.
+     *
+     * @return int The integer value from the top of the stack.
+     * @throws \Exception If the stack is empty (Stack Underflow).
+     */
 
     private function pop(): int {
         if (count($this->stack) === 0) {
             throw new \Exception("Stack Underflow.");
         }
-        // BUG FIX 3: Changed self::$stack to $this->stack
         return array_pop($this->stack);
     }
 }

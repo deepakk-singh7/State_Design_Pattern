@@ -1,13 +1,17 @@
 <?php
+/**
+ * Main entry point for the Wizard Duel game.
+ *
+ * This script initializes the game state, compiles spells from JSON definitions,
+ * and runs the main game loop, simulating a turn-based duel between two wizards
+ * until a winner is determined.
+ */
 
+// Include necessary class definitions for the game components.
 require_once 'src/Game.php';
 require_once 'src/VM.php';
 require_once 'src/Compiler.php';
 
-// First, create the spell files on disk so the script can read them.
-// file_put_contents(filename: 'fireball.spell', data: "# Deals 15 damage to the opponent (wizard 1)\nLITERAL 1\nGET_HEALTH\nLITERAL 15\nSUBTRACT\nLITERAL 1\nSET_HEALTH");
-// file_put_contents(filename: 'wisdom_boost.spell', data: "# Increases own (wizard 0) wisdom by 5\nLITERAL 0\nGET_WISDOM\nLITERAL 5\nADD\nLITERAL 0\nSET_WISDOM");
-// file_put_contents(filename: 'lightning_bolt.spell', data: "# Deals damage equal to own wisdom + own agility to the opponent (wizard 1)\nLITERAL 1\nGET_HEALTH\nLITERAL 0\nGET_WISDOM\nLITERAL 0\nGET_AGILITY\nADD\nSUBTRACT\nLITERAL 1\nSET_HEALTH");
 
 echo "========= WIZARD DUEL BEGINS =========\n";
 
@@ -31,6 +35,10 @@ $compiler = new Compiler();
 //     'Fireball' => $compiler->compile(__DIR__ . '/spellData/fireball.json')
 // ];
 
+
+// Compile spells for Gandalf.
+// Each spell is defined in a separate JSON file and compiled into executable bytecode.
+// The resulting bytecode is stored in an associative array for later use.
 $gandalfSpells = [
     'Wisdom Boost' => $compiler->compile(__DIR__ . '/spellData/wisdom_boost.json'),
     'Lightning Bolt' => $compiler->compile(__DIR__ . '/spellData/lightning_bolt.json'),
@@ -38,6 +46,7 @@ $gandalfSpells = [
     'Drain Wisdom' => $compiler->compile(__DIR__ . '/spellData/drain_wisdom.json'),
 ];
 
+// Compile spells for Dumbledore.
 $dumbledoreSpells = [
     'Fireball' => $compiler->compile(__DIR__ . '/spellData/fireball.json'),
     'Agility Boost' => $compiler->compile(__DIR__ . '/spellData/agility_boost.json'),
@@ -45,33 +54,35 @@ $dumbledoreSpells = [
     'Life Steal' => $compiler->compile(__DIR__ . '/spellData/life_steal.json'),
 ];
 
-
+// Initilize the turn counter
 $turn = 0;
+
+// The main game loop continues as long as no wizard has been defeated.
 while (!$game->isOver()) {
     $turn++;
     echo "\n======= TURN {$turn} =======\n";
     $game->printStatus();
 
     // Gandalf's turn (wizard 0)
+    // A random spell is chosen from his spellbook.
     $spellName = array_rand($gandalfSpells);
     $spellBytecode = $gandalfSpells[$spellName];
     // print_r($spellBytecode). PHP_EOL;
     $vm->interpret($spellBytecode, 'Gandalf', $spellName);
 
+    // Check if the game ended after Gandalf's turn to prevent the other wizard from taking a turn after being defeated.
     if ($game->isOver()) break;
 
     // Dumbledore's turn (wizard 1)
+    // A random spell is chosen from his spellbook.
     $spellName = array_rand($dumbledoreSpells);
     $spellBytecode = $dumbledoreSpells[$spellName];
     $vm->interpret($spellBytecode, 'Dumbledore', $spellName);
 }
 
+// Announce the end of the duel and declare the winner.
 echo "\n======= DUEL ENDED =======\n";
 $game->printStatus();
 echo "The winner is... " . $game->getWinner() . "!\n";
 
-// // Clean up the created spell files
-// unlink('fireball.spell');
-// unlink('wisdom_boost.spell');
-// unlink('lightning_bolt.spell');
 
