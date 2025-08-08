@@ -1,55 +1,119 @@
 body {
-    font-family: 'Inter', sans-serif;
-    background: url('https://www.transparenttextures.com/patterns/dark-stone-wall.png'), #1a202c;
+    font-family: sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
 }
 
-.font-fantasy {
-    font-family: 'MedievalSharp', cursive;
+.container {
+    max-width: 800px;
+    margin: 0 auto;
 }
 
-.wizard-card {
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    background-color: rgba(26, 32, 44, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease-in-out;
+h1 {
+    text-align: center;
 }
 
-.health-bar-bg {
-    background-color: #4a5568;
-}
-
-.health-bar {
-    transition: width 0.5s ease-in-out;
+.turn-info {
+    text-align: center;
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    font-weight: bold;
 }
 
 .game-log {
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid #ccc;
+    height: 100px;
+    overflow-y: auto;
+    padding: 10px;
+    margin-bottom: 20px;
+    background-color: white;
+}
+
+.wizards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.wizard {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: white;
+}
+
+/* Highlights the active wizard's turn */
+.wizard.active {
+    border-color: #000;
+    border-width: 2px;
+}
+
+.wizard h2 {
+    margin-top: 0;
+    text-align: center;
+}
+
+.spells {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 15px;
 }
 
 .spell-btn {
-    transition: all 0.2s ease;
-}
-
-.spell-btn:disabled {
-    cursor: not-allowed;
-    filter: grayscale(80%);
+    background-color: #e0e0e0;
+    border: 1px solid #999;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .spell-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(236, 201, 75, 0.3);
+    background-color: #d0d0d0;
 }
 
-/* Casting animation */
-.is-casting {
-    animation: screen-flash 0.7s ease-out;
+.spell-btn:disabled {
+    background-color: #f0f0f0;
+    color: #aaa;
+    cursor: not-allowed;
 }
 
-@keyframes screen-flash {
-    0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
-    50% { box-shadow: 0 0 20px 30px rgba(255, 255, 255, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.6);
+}
+
+.modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.restart-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 15px;
+}
+
+.restart-btn:hover {
+    background-color: #45a049;
+}
+
+.loading {
+    color: #666;
 }
