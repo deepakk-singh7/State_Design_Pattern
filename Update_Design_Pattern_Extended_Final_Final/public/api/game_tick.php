@@ -1,9 +1,11 @@
 <?php
 /**
- * Main Game Loop Controller (FIXED-STEP VERSION for 5 Hz updates).
+ * Main Game Tick Controller (SIMPLIFIED - "TICK ONCE" MODEL).
+ * This script advances the simulation by one fixed step each time it's called.
  */
 header('Content-Type: application/json');
 session_save_path(__DIR__ . '/../../private_sessions');
+session_start();
 
 // --- AUTOLOAD CLASSES ---
 require_once 'src/World.php';
@@ -15,20 +17,14 @@ require_once 'src/Minion.php';
 require_once 'src/LightningBolt.php';
 
 // --- CONSTANTS ---
-// Fixed time step for simulation (5 updates per second)
-// define('MS_PER_UPDATE', 1.0 / 5.0); // 5 update per second | 0.2 seconds per update
-// define('MS_PER_UPDATE', 1.0 / 1.0);  // 1 update per second
-// define('MS_PER_UPDATE', 1.0 / 2.0);  // 2 updates per second
-// define('MS_PER_UPDATE', 1.0 / 10.0); // 10 updates per second
-define('MS_PER_UPDATE', 1.0 / 60.0);  // 60 Hz
-
-session_start();
+// The server's tick rate should match the client's call frequency.
+// For a 5Hz update rate from the client, each tick is 1/5th of a second.
+define('FIXED_TIMESTEP', 1.0 / 5.0); // 0.2 seconds
 
 // --- GAME ACTIONS (RESET) ---
 if (isset($_GET['action']) && $_GET['action'] === 'reset') {
-    unset($_SESSION['world']);
-    unset($_SESSION['frame']);
-    unset($_SESSION['last_update_time']);
+    session_unset();
+    session_destroy();
     echo json_encode(['status' => 'reset']);
     exit;
 }
@@ -42,43 +38,29 @@ if (!isset($_SESSION['world'])) {
 
     $_SESSION['world'] = serialize($world);
     $_SESSION['frame'] = 0;
-    $_SESSION['last_update_time'] = microtime(true);
 }
 
-// --- MAIN GAME LOOP (TIME-BASED CATCH-UP) ---
+// --- MAIN LOGIC (TICK ONCE) ---
+// 1. Load the world from the session.
 $world = unserialize($_SESSION['world']);
-$currentTime = microtime(true);
-$lastUpdateTime = $_SESSION['last_update_time'] ?? $currentTime;
+$_SESSION['frame']++;
 
-// Calculate how much time has passed since last update
-$accumulator = $currentTime - $lastUpdateTime;
+// 2. Update the world by ONE fixed step. No more loops.
+$world->tick(FIXED_TIMESTEP);
 
-// Update the world in fixed time steps
-$updatesThisFrame = 0;
-$maxUpdatesPerFrame = 3; // Prevent spiral of death
-
-while ($accumulator >= MS_PER_UPDATE && $updatesThisFrame < $maxUpdatesPerFrame) {
-    $world->tick(MS_PER_UPDATE);
-    $accumulator -= MS_PER_UPDATE;
-    $updatesThisFrame++;
-    $_SESSION['frame']++;
-}
-
-// Store the remaining time for next frame
-$_SESSION['last_update_time'] = $currentTime - $accumulator;
+// 3. Save the new state back to the session.
 $_SESSION['world'] = serialize($world);
 
-// Extract the final state of all entities
+// 4. Extract the final state of all entities AFTER the tick.
 $entitiesData = [];
 foreach ($world->getEntities() as $entity) {
     $entitiesData[] = $entity->getState();
 }
 
 // --- SEND RESPONSE ---
+// The response includes the precise server timestamp for client extrapolation.
 echo json_encode([
     'frame' => $_SESSION['frame'],
     'entities' => $entitiesData,
-    'timestamp' => $currentTime, // Server timestamp for client extrapolation
-    'updates_this_frame' => $updatesThisFrame // Debug info
+    'timestamp' => microtime(true) // This is correct!
 ]);
-?>
