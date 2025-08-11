@@ -1,6 +1,7 @@
 /**
- * @file Frontend game controller using interpolation.
+ * @file Frontend game controller using Extrapolation for smooth rendering
  */
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Element References ---
     const worldElement = document.getElementById('world');
@@ -12,108 +13,128 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Game State Variables ---
     let isRunning = false;
     let animationFrameId;
-    let lastFrameTime = 0;
-
-    // NEW: State buffers for interpolation
-    let previousState = null;
-    let currentState = null;
+    
+    // Server update control - 5 updates per second
+    // Change this line for different update frequencies:
+    // const UPDATE_INTERVAL = 1000;  // 1 Hz (1 update per second)
+    // const UPDATE_INTERVAL = 500;   // 2 Hz (2 updates per second)  
+    // const UPDATE_INTERVAL = 200;   // 5 Hz (5 updates per second) - DEFAULT
+    // const UPDATE_INTERVAL = 100;   // 10 Hz (10 updates per second)
+    const UPDATE_INTERVAL = Math.round(1000/60);  // 17ms for 60 Hz
+    let updateIntervalId;
+    
+    // State for extrapolation
+    let serverState = null;
+    let lastServerTimestamp = 0;
 
     // --- Control Logic ---
     startStopBtn.addEventListener('click', () => {
         isRunning = !isRunning;
         startStopBtn.textContent = isRunning ? 'Stop' : 'Start';
+        
         if (isRunning) {
-            lastFrameTime = performance.now();
-            animationFrameId = requestAnimationFrame(gameLoop);
+            // Start server updates at 5 Hz
+            updateFromServer(); // Get initial state
+            updateIntervalId = setInterval(updateFromServer, UPDATE_INTERVAL);
+            
+            // Start render loop at 60 FPS
+            animationFrameId = requestAnimationFrame(renderLoop);
         } else {
+            clearInterval(updateIntervalId);
             cancelAnimationFrame(animationFrameId);
         }
     });
-    
+
     resetBtn.addEventListener('click', async () => {
         if (isRunning) {
             isRunning = false;
             startStopBtn.textContent = 'Start';
+            clearInterval(updateIntervalId);
             cancelAnimationFrame(animationFrameId);
         }
-        
+
         await fetch('api/game_tick.php?action=reset');
-        
+
         worldElement.innerHTML = '';
         frameCounter.textContent = '0';
         entityCounter.textContent = '0';
-        previousState = null; // Also reset client state buffers
-        currentState = null;
+        serverState = null;
         console.log("Game Reset!");
     });
 
-    // --- Game Loop and Rendering ---
-    async function gameLoop(timestamp) {
+    // --- Server Update Function ---
+    async function updateFromServer() {
         if (!isRunning) return;
 
-        const deltaTime = (timestamp - lastFrameTime) / 1000;
-        lastFrameTime = timestamp;
-
         try {
-            const response = await fetch(`api/game_tick.php?dt=${Math.min(deltaTime, 0.1)}`);
+            // Don't send deltaTime - let server handle fixed timesteps
+            const response = await fetch('api/game_tick.php');
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const serverResponse = await response.json();
 
-            // 1. Shift the states for interpolation
-            previousState = currentState;
-            currentState = serverResponse;
-
-            // 2. Render, but only if we have a state to draw
-            if (currentState) {
-                render();
-            }
-
-            // 3. Schedule the next frame
-            animationFrameId = requestAnimationFrame(gameLoop);
+            const data = await response.json();
+            serverState = data;
+            lastServerTimestamp = Date.now() / 1000; // Client timestamp when we received this update
 
         } catch (error) {
-            console.error("Error in game loop:", error);
+            console.error("Error updating from server:", error);
             isRunning = false;
             startStopBtn.textContent = 'Start';
+            clearInterval(updateIntervalId);
         }
     }
 
+    // --- Render Loop (60 FPS) ---
+    function renderLoop() {
+        if (!isRunning) return;
+
+        render();
+        animationFrameId = requestAnimationFrame(renderLoop);
+    }
+
+    // --- Extrapolation Rendering ---
     function render() {
-        // If we don't have a previous state, we can't interpolate.
-        // So, we treat the previous state as identical to the current one.
-        const prevState = previousState || currentState;
-        const alpha = currentState.interpolation_alpha;
+        if (!serverState) return;
+
+        const now = Date.now() / 1000;
+        const timeSinceUpdate = now - lastServerTimestamp;
 
         worldElement.innerHTML = '';
-        frameCounter.textContent = currentState.frame;
-        entityCounter.textContent = currentState.entities.length;
+        frameCounter.textContent = serverState.frame;
+        entityCounter.textContent = serverState.entities.length;
 
         const worldWidth = worldElement.clientWidth;
         const worldHeight = worldElement.clientHeight;
 
-        // Draw entities using interpolation
-        currentState.entities.forEach(currentEntity => {
-            const prevEntity = prevState.entities.find(e => e.id === currentEntity.id);
+        // Render each entity with extrapolation where appropriate
+        serverState.entities.forEach(entity => {
+            let renderX = entity.x;
+            let renderY = entity.y;
 
-            let renderX, renderY;
+            // Apply extrapolation only to moving entities
+            if (entity.type === 'LightningBolt' || entity.type === 'Skeleton') {
+                // Extrapolate position based on velocity and time since last update
+                renderX = entity.x + (entity.vx * timeSinceUpdate);
+                renderY = entity.y + (entity.vy * timeSinceUpdate);
 
-            if (!prevEntity) {
-                // Entity is new, just draw it at its current position
-                renderX = currentEntity.x;
-                renderY = currentEntity.y;
-            } else {
-                // INTERPOLATE position for smooth motion
-                renderX = prevEntity.x * (1.0 - alpha) + currentEntity.x * alpha;
-                renderY = prevEntity.y * (1.0 - alpha) + currentEntity.y * alpha;
-                
+                 // Smart bounds for Skeleton (predict bouncing)
+                if (entity.type === 'Skeleton') {
+                    if (renderX > 100) {
+                        let overshoot = renderX - 100;
+                        renderX = 100 - overshoot; // Bounce back from right wall
+                    } else if (renderX < 0) {
+                        let overshoot = -renderX;
+                        renderX = overshoot; // Bounce back from left wall
+                    }
+                }
+
+                // Clamp to world bounds for safety
+                renderX = Math.max(0, Math.min(100, renderX));
+                renderY = Math.max(0, Math.min(100, renderY));
             }
-            // // And force it to use the non-interpolated position:
-            // const renderX = currentEntity.x;
-            // const renderY = currentEntity.y;
-                        
+            // Minion, Spawner, and Statue use server position directly (no extrapolation)
+
             const entityDiv = document.createElement('div');
-            entityDiv.className = `entity ${currentEntity.type.toLowerCase()}`;
+            entityDiv.className = `entity ${entity.type.toLowerCase()}`;
             entityDiv.style.left = `${(renderX / 100) * worldWidth}px`;
             entityDiv.style.top = `${(renderY / 100) * worldHeight}px`;
 

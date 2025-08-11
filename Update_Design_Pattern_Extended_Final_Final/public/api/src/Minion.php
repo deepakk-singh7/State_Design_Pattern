@@ -25,6 +25,9 @@ class Minion extends Entity
      */
     public function update(World $world, float $deltaTime): void
     {
+        // Track velocity BEFORE changing position
+        // $this->updateVelocity($deltaTime);
+
         // Apply random movement scaled by speed and delta time
         $this->x += rand(-1, 1) * $this->wanderSpeed * $deltaTime;
         $this->y += rand(-1, 1) * $this->wanderSpeed * $deltaTime;

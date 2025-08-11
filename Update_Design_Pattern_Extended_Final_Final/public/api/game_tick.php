@@ -1,6 +1,6 @@
 <?php
 /**
- * Main Game Loop Controller (FIXED-STEP VERSION).
+ * Main Game Loop Controller (FIXED-STEP VERSION for 5 Hz updates).
  */
 header('Content-Type: application/json');
 session_save_path(__DIR__ . '/../../private_sessions');
@@ -15,9 +15,12 @@ require_once 'src/Minion.php';
 require_once 'src/LightningBolt.php';
 
 // --- CONSTANTS ---
-// The fixed time step for our simulation (e.g., 50 updates per second)
-// define('MS_PER_UPDATE', 1.0 / 50.0); // 0.02 seconds
-define('MS_PER_UPDATE', 1.0 / 1.0); // A much slower 10 updates per second
+// Fixed time step for simulation (5 updates per second)
+// define('MS_PER_UPDATE', 1.0 / 5.0); // 5 update per second | 0.2 seconds per update
+// define('MS_PER_UPDATE', 1.0 / 1.0);  // 1 update per second
+// define('MS_PER_UPDATE', 1.0 / 2.0);  // 2 updates per second
+// define('MS_PER_UPDATE', 1.0 / 10.0); // 10 updates per second
+define('MS_PER_UPDATE', 1.0 / 60.0);  // 60 Hz
 
 session_start();
 
@@ -25,7 +28,7 @@ session_start();
 if (isset($_GET['action']) && $_GET['action'] === 'reset') {
     unset($_SESSION['world']);
     unset($_SESSION['frame']);
-    unset($_SESSION['lag']); // Also reset lag
+    unset($_SESSION['last_update_time']);
     echo json_encode(['status' => 'reset']);
     exit;
 }
@@ -39,33 +42,33 @@ if (!isset($_SESSION['world'])) {
 
     $_SESSION['world'] = serialize($world);
     $_SESSION['frame'] = 0;
-    $_SESSION['lag'] = 0.0;
+    $_SESSION['last_update_time'] = microtime(true);
 }
 
-// --- MAIN GAME LOOP (CATCH-UP LOGIC) ---
+// --- MAIN GAME LOOP (TIME-BASED CATCH-UP) ---
 $world = unserialize($_SESSION['world']);
-$_SESSION['frame']++;
+$currentTime = microtime(true);
+$lastUpdateTime = $_SESSION['last_update_time'] ?? $currentTime;
 
-// The client tells us how much real time has passed
-$rawDt = isset($_GET['dt']) ? (float)$_GET['dt'] : 0.0;
-$deltaTime = max(0, $rawDt); 
+// Calculate how much time has passed since last update
+$accumulator = $currentTime - $lastUpdateTime;
 
-// Accumulate lag with the real time passed
-$lag = $_SESSION['lag'] ?? 0.0;
-$lag += $deltaTime;
+// Update the world in fixed time steps
+$updatesThisFrame = 0;
+$maxUpdatesPerFrame = 3; // Prevent spiral of death
 
-// "Catch-up" loop: Update the simulation in fixed steps
-while ($lag >= MS_PER_UPDATE) {
-    // IMPORTANT: Update the world using the FIXED step
+while ($accumulator >= MS_PER_UPDATE && $updatesThisFrame < $maxUpdatesPerFrame) {
     $world->tick(MS_PER_UPDATE);
-    $lag -= MS_PER_UPDATE;
+    $accumulator -= MS_PER_UPDATE;
+    $updatesThisFrame++;
+    $_SESSION['frame']++;
 }
 
-// Store the remaining lag for the next request
-$_SESSION['lag'] = $lag;
+// Store the remaining time for next frame
+$_SESSION['last_update_time'] = $currentTime - $accumulator;
 $_SESSION['world'] = serialize($world);
 
-// Extract the final state of all entities AFTER the ticks
+// Extract the final state of all entities
 $entitiesData = [];
 foreach ($world->getEntities() as $entity) {
     $entitiesData[] = $entity->getState();
@@ -75,6 +78,7 @@ foreach ($world->getEntities() as $entity) {
 echo json_encode([
     'frame' => $_SESSION['frame'],
     'entities' => $entitiesData,
-    'interpolation_alpha' => $lag / MS_PER_UPDATE // Send leftover lag as a percentage
+    'timestamp' => $currentTime, // Server timestamp for client extrapolation
+    'updates_this_frame' => $updatesThisFrame // Debug info
 ]);
-// php -S localhost:8000 -t public
+?>
