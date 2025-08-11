@@ -1,13 +1,19 @@
 <?php
 /**
- * Main Game Tick Controller (SIMPLIFIED - "TICK ONCE" MODEL).
- * This script advances the simulation by one fixed step each time it's called.
+ * Main API Entry Point / Router (Manual Includes Version)
  */
 header('Content-Type: application/json');
-session_save_path(__DIR__ . '/../../private_sessions');
-session_start();
+session_save_path(__DIR__ . '/../private_sessions');
+session_start(); // Call session_start() only ONCE at the top.
 
-// --- AUTOLOAD CLASSES ---
+// --- CONSTANTS ---
+define('FIXED_TIMESTEP', 1.0 / 5.0); // 5 Hz = 0.2 seconds per tick
+
+// --- MANUAL INCLUDES ---
+// This is the single source of truth for all includes.
+// The paths are simple and relative to this file.
+require_once 'src/Service/GameService.php';
+require_once 'src/Controller/GameController.php';
 require_once 'src/World.php';
 require_once 'src/Entity.php';
 require_once 'src/Skeleton.php';
@@ -16,51 +22,25 @@ require_once 'src/Spawner.php';
 require_once 'src/Minion.php';
 require_once 'src/LightningBolt.php';
 
-// --- CONSTANTS ---
-// The server's tick rate should match the client's call frequency.
-// For a 5Hz update rate from the client, each tick is 1/5th of a second.
-define('FIXED_TIMESTEP', 1.0 / 5.0); // 0.2 seconds
+// --- DEPENDENCY INJECTION & ROUTING ---
 
-// --- GAME ACTIONS (RESET) ---
-if (isset($_GET['action']) && $_GET['action'] === 'reset') {
-    session_unset();
-    session_destroy();
-    echo json_encode(['status' => 'reset']);
-    exit;
+// 1. Create the service with the global session state.
+$gameService = new GameService($_SESSION);
+
+// 2. Create the controller and give it the service.
+$controller = new GameController($gameService);
+
+// 3. Determine the action from the query string, defaulting to 'tick'.
+$action = $_GET['action'] ?? 'tick';
+
+// 4. Route the request to the correct controller method.
+switch ($action) {
+    case 'reset':
+        $controller->reset();
+        break;
+    
+    case 'tick':
+    default:
+        $controller->tick();
+        break;
 }
-
-// --- INITIALIZE GAME STATE ---
-if (!isset($_SESSION['world'])) {
-    $world = new World();
-    $world->addEntity(new Skeleton(10, 50));
-    $world->addEntity(new Statue(90, 20));
-    $world->addEntity(new Spawner(5, 5, 1));
-
-    $_SESSION['world'] = serialize($world);
-    $_SESSION['frame'] = 0;
-}
-
-// --- MAIN LOGIC (TICK ONCE) ---
-// 1. Load the world from the session.
-$world = unserialize($_SESSION['world']);
-$_SESSION['frame']++;
-
-// 2. Update the world by ONE fixed step. No more loops.
-$world->tick(FIXED_TIMESTEP);
-
-// 3. Save the new state back to the session.
-$_SESSION['world'] = serialize($world);
-
-// 4. Extract the final state of all entities AFTER the tick.
-$entitiesData = [];
-foreach ($world->getEntities() as $entity) {
-    $entitiesData[] = $entity->getState();
-}
-
-// --- SEND RESPONSE ---
-// The response includes the precise server timestamp for client extrapolation.
-echo json_encode([
-    'frame' => $_SESSION['frame'],
-    'entities' => $entitiesData,
-    'timestamp' => microtime(true) // This is correct!
-]);
