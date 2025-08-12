@@ -17,10 +17,12 @@ export class Game {
         this.renderLoopId = null;
         
         // This should match the server's intended update frequency
-        this.UPDATE_INTERVAL = 200; // 200ms = 5 Hz
-        // this.UPDATE_INTERVAL = 33; // (Approx. 30 Hz)
+        this.UPDATE_INTERVAL = 1000; // (1 Hz - only one update per second!)
+        // this.UPDATE_INTERVAL = 200; // 200ms = 5 Hz
+        // this.UPDATE_INTERVAL = 100; // 100ms = 10 Hz
+        // this.UPDATE_INTERVAL = 50; // 50ms = 20Hz
+        // this.UPDATE_INTERVAL = 20; // 20ms = 50Hz
         // this.UPDATA_INTERVAL = 16.61 // 60Hz
-        // this.UPDATE_INTERVAL = 1000; // (1 Hz - only one update per second!)
     }
     
     /**

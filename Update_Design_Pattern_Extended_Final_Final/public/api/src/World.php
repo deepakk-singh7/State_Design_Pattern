@@ -37,7 +37,6 @@ class World
      */
     public function tick(float $deltaTime): void
     {
-        // --- THIS ORDER IS CRITICAL ---
 
         // 1. Add entities that were spawned in the PREVIOUS frame.
         $this->applyAdditions();

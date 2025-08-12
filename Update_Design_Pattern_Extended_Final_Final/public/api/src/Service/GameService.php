@@ -1,6 +1,4 @@
 <?php
-// REMOVED: All use and namespace lines.
-
 /**
  * Manages the core game state, abstracting session and world logic.
  */

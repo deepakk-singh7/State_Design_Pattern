@@ -1,6 +1,4 @@
 <?php
-// REMOVED: All require_once and namespace lines.
-
 /**
  * Handles HTTP requests related to the game, using GameService for logic.
  * This class doesn't know or care how GameService was loaded.
