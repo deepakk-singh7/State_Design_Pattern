@@ -13,13 +13,13 @@ class LightningBolt extends Entity
      * The speed at which the bolt travels, in world units per second.
      * @var float
      */
-    private float $speed = 75.0;
+    private float $speed = 35.0;
     
     /**
      * The maximum duration the bolt can exist, in seconds, before self-destructing.
      * @var float
      */
-    private float $lifeInSeconds = 1.5;
+    private float $lifeInSeconds = 2.5;
 
     /**
      * Constructor - set initial velocity

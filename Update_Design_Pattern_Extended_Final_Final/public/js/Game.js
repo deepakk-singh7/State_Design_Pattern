@@ -5,29 +5,20 @@
 //  * The main game controller. Orchestrates the game loops, state, and components.
 //  */
 // export class Game {
-//     constructor(config) {
-//         this.config = config; // Contains DOM elements
+//      constructor(domElements, appConfig) { 
+//         this.config = domElements;
 //         this.api = new GameAPI();
-//         this.renderer = new Renderer(config.worldElement);
-        
+//         this.renderer = new Renderer(this.config.worldElement, this.config.clientFpsCounter);
 //         this.isRunning = false;
-//         this.serverState = null;
         
+//         this.stateBuffer = [];
 //         this.updateIntervalId = null;
 //         this.renderLoopId = null;
-        
-//         // This should match the server's intended update frequency
-//         this.UPDATE_INTERVAL = 1000; // (1 Hz - only one update per second!)
-//         // this.UPDATE_INTERVAL = 200; // 200ms = 5 Hz
-//         // this.UPDATE_INTERVAL = 100; // 100ms = 10 Hz
-//         // this.UPDATE_INTERVAL = 50; // 50ms = 20Hz
-//         // this.UPDATE_INTERVAL = 20; // 20ms = 50Hz
-//         // this.UPDATA_INTERVAL = 16.61 // 60Hz
+
+//         // Use the passed-in config value
+//         this.gameInterval = appConfig.UPDATE_INTERVAL_MS;
 //     }
-    
-//     /**
-//      * Initializes the game by setting up event listeners.
-//      */
+
 //     init() {
 //         this.config.startStopBtn.addEventListener('click', () => this.togglePause());
 //         this.config.resetBtn.addEventListener('click', () => this.reset());
@@ -36,7 +27,7 @@
 //     togglePause() {
 //         this.isRunning = !this.isRunning;
 //         this.config.startStopBtn.textContent = this.isRunning ? 'Stop' : 'Start';
-        
+
 //         if (this.isRunning) {
 //             this.start();
 //         } else {
@@ -45,8 +36,11 @@
 //     }
 
 //     start() {
+//         // Fetch initial state immediately
 //         this._serverUpdateLoop();
-//         this.updateIntervalId = setInterval(() => this._serverUpdateLoop(), this.UPDATE_INTERVAL);
+//         // Set up the regular server update loop
+//         this.updateIntervalId = setInterval(() => this._serverUpdateLoop(), this.gameInterval);
+//         // Start the rendering loop
 //         this.renderLoopId = requestAnimationFrame(() => this._renderLoop());
 //     }
 
@@ -54,82 +48,101 @@
 //         clearInterval(this.updateIntervalId);
 //         cancelAnimationFrame(this.renderLoopId);
 //     }
-    
+
 //     async reset() {
 //         if (this.isRunning) {
 //             this.stop();
 //             this.isRunning = false;
 //             this.config.startStopBtn.textContent = 'Start';
 //         }
-        
 //         await this.api.reset();
-        
 //         this.renderer.clear();
 //         this.config.frameCounter.textContent = '0';
 //         this.config.entityCounter.textContent = '0';
-//         this.serverState = null;
+//         this.stateBuffer = []; // Clear the state buffer
 //         console.log("Game Reset!");
 //     }
-    
+
 //     /**
-//      * The server update loop function.
+//      * The server update loop function. Fetches state and pushes it to a buffer.
 //      * @private
 //      */
 //     async _serverUpdateLoop() {
 //         const newState = await this.api.getState();
 //         if (newState) {
-//             this.serverState = newState;
+//             this.stateBuffer.push(newState);
+//             // Keep the buffer from growing too large
+//             if (this.stateBuffer.length > 5) {
+//                 this.stateBuffer.shift();
+//             }
 //         } else {
 //             this.togglePause();
 //         }
 //     }
-    
+
 //     /**
-//      * The render loop function.
+//      * The render loop function. Handles interpolation logic.
 //      * @private
 //      */
 //     _renderLoop() {
 //         if (!this.isRunning) return;
 
-//         if (this.serverState) {
-//             // We calculate time passed since the SERVER generated the state,
-//             // not when our client received it. This accounts for network lag.
-//             const timeSinceUpdate = (Date.now() / 1000) - this.serverState.timestamp;
-            
-//             this.renderer.render(this.serverState, timeSinceUpdate);
-            
-//             this.config.frameCounter.textContent = this.serverState.frame;
-//             this.config.entityCounter.textContent = this.serverState.entities.length;
+//         // We need two states (a "from" and "to") to interpolate
+//         if (this.stateBuffer.length < 2) {
+//             requestAnimationFrame(() => this._renderLoop());
+//             return;
 //         }
+
+//         // The "from" state is the second to last one in our buffer
+//         const prevState = this.stateBuffer[this.stateBuffer.length - 2];
+//         // The "to" state is the most recent one
+//         const targetState = this.stateBuffer[this.stateBuffer.length - 1];
+
+//         // How much time has passed since the "from" state was generated?
+//         const timeToInterpolate = (Date.now() - this.gameInterval) / 1000;
+//         const timeSincePrevState = timeToInterpolate - prevState.timestamp;
         
-//         this.renderLoopId = requestAnimationFrame(() => this._renderLoop());
+//         // How long is the total time between our two states?
+//         const timeBetweenStates = targetState.timestamp - prevState.timestamp;
+
+//         // Calculate our alpha (0.0 to 1.0)
+//         // We ensure alpha doesn't go above 1, which would be extrapolation
+//         const interpolationFactor = Math.min(1, timeSincePrevState / timeBetweenStates);
+
+//         this.renderer.render(prevState, targetState, interpolationFactor);
+
+//         this.config.frameCounter.textContent = targetState.frame;
+//         this.config.entityCounter.textContent = targetState.entities.length;
+
+//         requestAnimationFrame(() => this._renderLoop());
 //     }
 // }
 
 
 import { GameAPI } from './components/GameAPI.js';
 import { Renderer } from './components/Renderer.js';
-import { AppConfig } from './config.js'; // Import the new config
 
 /**
  * The main game controller. Orchestrates the game loops, state, and components.
  */
 export class Game {
-    constructor(config) {
-        this.config = config; // Contains DOM elements
+     constructor(domElements, appConfig) { 
+        this.config = domElements;
         this.api = new GameAPI();
-        this.renderer = new Renderer(config.worldElement);
-
+        // Pass the fpsCounterElement to the Renderer constructor
+        this.renderer = new Renderer(this.config.worldElement, this.config.clientFpsCounter);
         this.isRunning = false;
         
-        // --- Interpolation State ---
-        this.stateBuffer = []; // Buffer to store recent server states
+        this.stateBuffer = [];
         this.updateIntervalId = null;
         this.renderLoopId = null;
 
-        // Load settings from config file
-        this.updateInterval = AppConfig.UPDATE_INTERVAL_MS;
-        this.interpolationDelay = AppConfig.INTERPOLATION_DELAY_MS;
+        // Use the passed-in config value
+        this.gameInterval = appConfig.UPDATE_INTERVAL_MS;
+        // --- ADDED: Frame rate limiting properties ---
+        this.targetFrameInterval = 1000 / appConfig.CLIENT_TARGET_FPS;
+        this.lastRenderTime = performance.now();
+        // ---------------------------------------------
     }
 
     init() {
@@ -152,7 +165,7 @@ export class Game {
         // Fetch initial state immediately
         this._serverUpdateLoop();
         // Set up the regular server update loop
-        this.updateIntervalId = setInterval(() => this._serverUpdateLoop(), this.updateInterval);
+        this.updateIntervalId = setInterval(() => this._serverUpdateLoop(), this.gameInterval);
         // Start the rendering loop
         this.renderLoopId = requestAnimationFrame(() => this._renderLoop());
     }
@@ -172,6 +185,7 @@ export class Game {
         this.renderer.clear();
         this.config.frameCounter.textContent = '0';
         this.config.entityCounter.textContent = '0';
+        this.config.clientFpsCounter.textContent = '0';
         this.stateBuffer = []; // Clear the state buffer
         console.log("Game Reset!");
     }
@@ -183,7 +197,6 @@ export class Game {
     async _serverUpdateLoop() {
         const newState = await this.api.getState();
         if (newState) {
-            newState.receivedAt = Date.now(); // Record when we received the state
             this.stateBuffer.push(newState);
             // Keep the buffer from growing too large
             if (this.stateBuffer.length > 5) {
@@ -201,46 +214,44 @@ export class Game {
     _renderLoop() {
         if (!this.isRunning) return;
 
-        // We need at least two states to interpolate
-        if (this.stateBuffer.length < 2) {
-            this.renderLoopId = requestAnimationFrame(() => this._renderLoop());
-            return;
-        }
+        // --- NEW: Frame Limiter Logic ---
+        const currentTime = performance.now();
+        const deltaTime = currentTime - this.lastRenderTime;
 
-        // Calculate the timestamp we want to render
-        const renderTimestamp = (Date.now() - this.interpolationDelay) / 1000;
+        // Only render if enough time has passed
+        if (deltaTime >= this.targetFrameInterval) {
 
-        // Find the two states in our buffer that our renderTimestamp falls between
-        let targetStateIndex = -1;
-        for (let i = this.stateBuffer.length - 1; i >= 0; i--) {
-            if (this.stateBuffer[i].timestamp <= renderTimestamp) {
-                targetStateIndex = i + 1;
-                break;
+            // We need two states (a "from" and "to") to interpolate
+            if (this.stateBuffer.length < 2) {
+                requestAnimationFrame(() => this._renderLoop());
+                return;
             }
+
+            // The "from" state is the second to last one in our buffer
+            const prevState = this.stateBuffer[this.stateBuffer.length - 2];
+            // The "to" state is the most recent one
+            const targetState = this.stateBuffer[this.stateBuffer.length - 1];
+
+            // How much time has passed since the "from" state was generated?
+            const timeToInterpolate = (Date.now() - this.gameInterval) / 1000;
+            const timeSincePrevState = timeToInterpolate - prevState.timestamp;
+            
+            // How long is the total time between our two states?
+            const timeBetweenStates = targetState.timestamp - prevState.timestamp;
+
+            // Calculate our alpha (0.0 to 1.0)
+            // We ensure alpha doesn't go above 1, which would be extrapolation
+            const interpolationFactor = Math.min(1, timeSincePrevState / timeBetweenStates);
+
+            this.renderer.render(prevState, targetState, interpolationFactor);
+
+            this.config.frameCounter.textContent = targetState.frame;
+            this.config.entityCounter.textContent = targetState.entities.length;
+
+            this.lastRenderTime = currentTime - (deltaTime % this.targetFrameInterval);
         }
+        // ----------------------------------
 
-        // Ensure we have a valid target and a state before it
-        if (targetStateIndex === -1 || targetStateIndex >= this.stateBuffer.length) {
-            this.renderLoopId = requestAnimationFrame(() => this._renderLoop());
-            return; // Not enough data to interpolate yet
-        }
-
-        const targetState = this.stateBuffer[targetStateIndex];
-        const previousState = this.stateBuffer[targetStateIndex - 1];
-
-        const timeBetweenStates = targetState.timestamp - previousState.timestamp;
-        const timeSincePreviousState = renderTimestamp - previousState.timestamp;
-
-        // This is our interpolation factor (alpha), clamped between 0 and 1
-        const interpolationFactor = Math.max(0, Math.min(1, timeSincePreviousState / timeBetweenStates));
-        
-        // Pass the two states and the factor to the renderer
-        this.renderer.render(previousState, targetState, interpolationFactor);
-
-        // Update UI counters with the data from our "target" state
-        this.config.frameCounter.textContent = targetState.frame;
-        this.config.entityCounter.textContent = targetState.entities.length;
-
-        this.renderLoopId = requestAnimationFrame(() => this._renderLoop());
+        requestAnimationFrame(() => this._renderLoop());
     }
 }

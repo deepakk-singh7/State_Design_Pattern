@@ -19,7 +19,7 @@ class Skeleton extends Entity
      * The horizontal speed of the skeleton, in world units per second.
      * @var float
      */
-    private float $speed = 10.0;
+    private float $speed = 15.0; // @10, it will collide with the lightningBolt [@35]
 
     /**
      * Updates the Skeleton's position based on its patrol state.

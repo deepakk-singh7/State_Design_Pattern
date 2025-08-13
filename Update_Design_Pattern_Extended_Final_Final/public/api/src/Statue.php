@@ -14,7 +14,7 @@ class Statue extends Entity
      * The fixed time interval between shooting projectiles, in seconds.
      * @var float
      */
-    private float $shootCooldown = 2.0; 
+    private float $shootCooldown = 5.0; 
     /**
      * A countdown timer that tracks the time until the next shot.
      * Initialized at declaration to ensure it has a value after unserialization.

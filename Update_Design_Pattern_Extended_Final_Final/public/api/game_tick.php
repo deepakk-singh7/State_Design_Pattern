@@ -38,3 +38,4 @@ switch ($action) {
         $controller->tick();
         break;
 }
+//php -S localhost:8000 -t public
