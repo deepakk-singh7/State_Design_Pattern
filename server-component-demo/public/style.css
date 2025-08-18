@@ -1,0 +1,14 @@
+body {
+    font-family: sans-serif;
+    background: #333;
+    color: white;
+    text-align: center;
+}
+canvas {
+    background: #111;
+    border: 2px solid white;
+    display: block;
+    margin: 20px auto;
+}
+#info { font-size: 1.2em; margin-bottom: 10px; }
+button { padding: 10px 20px; font-size: 1em; cursor: pointer; }
