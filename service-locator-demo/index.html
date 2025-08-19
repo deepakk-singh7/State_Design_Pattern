@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Locator Demo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Notification System Demo</h1>
+        <p>This demo uses the Service Locator, Null Object, and Decorator patterns.</p>
+        
+        <form id="notificationForm">
+            <div class="form-group">
+                <label for="message">Message:</label>
+                <textarea id="message" name="message" rows="3" required>Your order has shipped!</textarea>
+            </div>
+
+            <fieldset class="form-group">
+                <legend>Notification Service:</legend>
+                <label><input type="radio" name="service" value="email" checked> Email</label>
+                <label><input type="radio" name="service" value="sms"> SMS</label>
+                <label><input type="radio" name="service" value="disable"> Disable Notifications</label>
+            </fieldset>
+            
+            <div class="form-group">
+                <label><input type="checkbox" id="logging" name="logging" value="true"> Enable Logging (Decorator)</label>
+            </div>
+
+            <button type="submit">Send Notification</button>
+        </form>
+
+        <div class="output-container">
+            <h2>Backend Response:</h2>
+            <pre id="output">Click "Send Notification" to see the result.</pre>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
