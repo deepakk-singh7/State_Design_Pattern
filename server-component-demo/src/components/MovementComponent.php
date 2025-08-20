@@ -7,17 +7,17 @@ class MovementComponent extends Component
     /**
      * Updates the GameObject's position based on a direction.
      * @param GameObject $obj The game object to move.
-     * @param string $direction The direction to move in ('up', 'down', 'left', 'right').
+     * @param Direction $direction The direction enum to move in ('up', 'down', 'left', 'right').
      */
-    public function move(GameObject $obj, string $direction)
+    public function move(GameObject $obj, Direction $direction)
     {
         $speed = 15;
         // Update the object's coordinates based on the input direction.
         switch ($direction) {
-            case 'up': $obj->y -= $speed; break;
-            case 'down': $obj->y += $speed; break;
-            case 'left': $obj->x -= $speed; break;
-            case 'right': $obj->x += $speed; break;
+            case Direction::Up: $obj->y -= $speed; break;
+            case Direction::Down: $obj->y += $speed; break;
+            case Direction::Left: $obj->x -= $speed; break;
+            case Direction::Right: $obj->x += $speed; break;
         }
         
         // --- Inter-Component Communication ---
