@@ -5,13 +5,26 @@
 require_once __DIR__ . '/../../src/enums/EntityType.php';
 require_once __DIR__ . '/../../src/enums/Direction.php';
 require_once __DIR__ . '/../../src/enums/ClientAction.php';
+require_once __DIR__ . '/../../src/enums/GameConstants.php';
+
+// Core classes
 require_once __DIR__ . '/../../src/GameObject.php';
+// Interface
+require_once __DIR__ . '/../../src/interfaces/Collectable.php';
+// Components
 require_once __DIR__ . '/../../src/components/Component.php';
 require_once __DIR__ . '/../../src/components/RenderDataComponent.php';
 require_once __DIR__ . '/../../src/components/HealthComponent.php';
 require_once __DIR__ . '/../../src/components/MovementComponent.php';
+require_once __DIR__ . '/../../src/components/HealthPackComponent.php';
+require_once __DIR__ . '/../../src/components/PoisonPackComponent.php';
+require_once __DIR__ . '/../../src/components/SpeedBoostComponent.php';
+
+// Systems
 require_once __DIR__ . '/../../src/systems/CollisionSystem.php';
+// Game
 require_once __DIR__ . '/../../src/Game.php';
+
 
 // --- 1. SETUP ---
 session_start();

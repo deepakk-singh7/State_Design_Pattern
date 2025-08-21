@@ -21,16 +21,28 @@ class Game implements JsonSerializable
     {
         // $player = new GameObject('player', 180, 180);
         $player = new GameObject(EntityType::Player->value, 180, 180);
-        $player->health = 0; 
+        $player->health = 10; 
         $player->addComponent(new RenderDataComponent(GameConstants::PLAYER_COLOR, 30));
         $player->addComponent(new MovementComponent());
         $player->addComponent(new HealthComponent());
 
         // $healthPack = new GameObject('health_pack', rand(20, 360), rand(20, 360));
+        // Create health pack
         $healthPack = new GameObject(EntityType::HealthPack->value, rand(20, 360), rand(20, 360));
         $healthPack->addComponent(new RenderDataComponent(GameConstants::HEALTH_PACK_COLOR, 20));
+        $healthPack->addComponent(new HealthPackComponent(25)); // Heals 25 HP
 
-        $this->objects = [$player, $healthPack];
+        // Create poison pack
+        $poisonPack = new GameObject(EntityType::PoisonPack->value, rand(20, 360), rand(20, 360));
+        $poisonPack->addComponent(new RenderDataComponent(GameConstants::POISON_PACK_COLOR, 20));
+        $poisonPack->addComponent(new PoisonPackComponent(20)); // Damages 20 HP
+
+        // Create speed boost pack
+        $speedBoost = new GameObject(EntityType::SpeedBoost->value, rand(20, 360), rand(20, 360));
+        $speedBoost->addComponent(new RenderDataComponent(GameConstants::SPEED_BOOST_COLOR, 20));
+        $speedBoost->addComponent(new SpeedBoostComponent());
+
+        $this->objects = [$player, $healthPack, $poisonPack, $speedBoost]; // $speedBoost
     }
 
     /**
