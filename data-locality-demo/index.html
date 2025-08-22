@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Locality Demo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Data Locality Demo</h1>
+        <canvas id="simulationCanvas" width="800" height="600"></canvas>
+        <div class="controls">
+            <button id="startStopBtn">Start</button>
+            <button id="inefficientBtn" class="mode-btn active">Inefficient Mode</button>
+            <button id="efficientBtn" class="mode-btn">Efficient Mode</button>
+        </div>
+        <div class="stats">
+            <p>Current Mode: <span id="modeDisplay">Inefficient</span></p>
+            <p>Server Time (ms): <span id="timeDisplay">0.00</span></p>
+        </div>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>
