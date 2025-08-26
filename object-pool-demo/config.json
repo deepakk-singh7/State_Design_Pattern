@@ -1,0 +1,12 @@
+{
+  "pools": {
+    "particle": {
+      "size": 150,
+      "overflow": "ignore"
+    },
+    "smoke": {
+      "size": 50,
+      "overflow": "reclaim"
+    }
+  }
+}
