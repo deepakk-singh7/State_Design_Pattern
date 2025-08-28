@@ -35,7 +35,8 @@ switch ($action) {
         $grid = new Grid($config);
         /// Create 150 units at random positions for the larger world.
         for ($i = 0; $i < $config->UNIT_COUNT; $i++) {
-            new Unit($grid, rand(0, $config->WORLD_SIZE), rand(0, $config->WORLD_SIZE));
+            $unit = new Unit($i, rand(0, $config->WORLD_SIZE), rand(0, $config->WORLD_SIZE));
+            $grid->add($unit);
         }
         // Serialize and save the entire Grid object in the session.
         $_SESSION[ApiActions::GRID] = serialize($grid);

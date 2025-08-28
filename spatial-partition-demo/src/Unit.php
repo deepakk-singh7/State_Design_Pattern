@@ -13,7 +13,7 @@ class Unit
      * A static counter to ensure every unit gets a unique ID.
      * @var int
      */
-    private static int $nextId = 0;
+    // private static int $nextId = 0;
     /**
      * The unique identifier for this unit.
      * @var int
@@ -43,7 +43,7 @@ class Unit
      * A reference to the Grid that this unit belongs to.
      * @var Grid|null
      */
-    public ?Grid $grid;
+    // public ?Grid $grid;
     
     /**
      * A pointer to the previous unit in the same grid cell's linked list.
@@ -64,14 +64,11 @@ class Unit
      * @param float $x The initial X-coordinate.
      * @param float $y The initial Y-coordinate.
      */
-    public function __construct(?Grid $grid, float $x, float $y)
-    {
-        $this->id = self::$nextId++;
-        $this->grid = $grid;
+    public function __construct(int $id, float $x, float $y)
+    {   
+        $this->id = $id;
         $this->x = $x;
         $this->y = $y;
 
-        // Automatically add the unit to the grid upon creation. // remove grid depen
-        $this->grid->add($this);
     }
 }
