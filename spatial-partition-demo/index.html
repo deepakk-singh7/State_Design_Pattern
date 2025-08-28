@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spatial Partition Demo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Proximity Alert Demo</h1>
+    <div class="controls">
+        <label>Set FPS:</label>
+        <button onclick="startLoop(10)">10</button>
+        <button onclick="startLoop(20)">20</button>
+        <button onclick="startLoop(50)">50</button>
+        <button onclick="startLoop(0)">Max</button>
+    </div>
+    <canvas id="gameCanvas" width="600" height="600"></canvas>
+    <script src="main.js"></script>
+</body>
+</html>
