@@ -1,10 +1,27 @@
+/** @type {HTMLCanvasElement} */
 const canvas = document.getElementById('gameCanvas');
+/** @type {CanvasRenderingContext2D} */
 const ctx = canvas.getContext('2d');
 
-// Constants must match the backend for correct rendering.
-const WORLD_SIZE = 600;
-const NUM_CELLS = 10;
-const CELL_SIZE = WORLD_SIZE / NUM_CELLS;
+/**
+ * Constants for string literals used in the application.
+ */
+const CONSTANTS = {
+    API_ACTIONS: {
+        INIT: 'init',
+        UPDATE: 'update'
+    },
+    COLORS: {
+        NEAR: '#e74c3c', // Red
+        NORMAL: '#3498db', // Blue
+        GRID: '#eee'
+    }
+};
+
+/** This will hold the configuration loaded from the server.
+ * @type {object|null}
+ */
+let config = null;
 
 /**
  * The array of unit objects received from the backend.
@@ -12,105 +29,107 @@ const CELL_SIZE = WORLD_SIZE / NUM_CELLS;
  */
 let units = [];
 
-// --- FPS Control Variables ---
-let fpsInterval, then, startTime;
-let animationFrameId; // Stores the ID of the animation frame for cancellation.
+/**
+ * The ID of the currently running interval, used to stop it.
+ * @type {number|null}
+ */
+let simulationIntervalId = null;
 
 /**
- * Draws the grid lines on the canvas for visualization.
+ * Draws the grid lines based on the loaded configuration.
  */
 function drawGrid() {
-    ctx.strokeStyle = '#eee';
+    ctx.strokeStyle = CONSTANTS.COLORS.GRID;
     ctx.lineWidth = 1;
-    for (let i = 1; i < NUM_CELLS; i++) {
-        // Draw vertical lines.
+    const cellSize = config.WORLD_SIZE / config.NUM_CELLS;
+    for (let i = 1; i < config.NUM_CELLS; i++) {
+        const pos = i * cellSize;
         ctx.beginPath();
-        ctx.moveTo(i * CELL_SIZE, 0);
-        ctx.lineTo(i * CELL_SIZE, WORLD_SIZE);
+        ctx.moveTo(pos, 0);
+        ctx.lineTo(pos, config.WORLD_SIZE);
         ctx.stroke();
 
-        // Draw horizontal lines.
         ctx.beginPath();
-        ctx.moveTo(0, i * CELL_SIZE);
-        ctx.lineTo(WORLD_SIZE, i * CELL_SIZE);
+        ctx.moveTo(0, pos);
+        ctx.lineTo(config.WORLD_SIZE, pos);
         ctx.stroke();
     }
 }
 
 /**
- * Draws all the units on the canvas as colored circles.
+ * Draws all the units on the canvas.
  */
 function drawUnits() {
     units.forEach(unit => {
         ctx.beginPath();
-        // Draw a circle for each unit. Radius is 4px.
-        ctx.arc(unit.x, unit.y, 4, 0, Math.PI * 2); 
-        // Color is red if 'isNear' is true, otherwise blue.
-        ctx.fillStyle = unit.isNear ? '#e74c3c' : '#3498db'; 
+        ctx.arc(unit.x, unit.y, config.UNIT_RADIUS, 0, Math.PI * 2);
+        ctx.fillStyle = unit.isNear ? CONSTANTS.COLORS.NEAR : CONSTANTS.COLORS.NORMAL;
         ctx.fill();
     });
 }
 
 /**
- * The main game loop, controlled by a fixed timestep.
- * It requests animation frames but only updates and draws at the target FPS.
- * @param {DOMHighResTimeStamp} currentTime The current time provided by requestAnimationFrame.
+ * This is the core logic function. It fetches the new state from the
+ * server and then redraws the canvas. It will be called repeatedly by setInterval.
  */
-async function gameLoop(currentTime) {
-    // Keep the loop going.
-    animationFrameId = requestAnimationFrame(gameLoop);
+async function updateAndDraw() {
+    const response = await fetch(`api.php?action=${CONSTANTS.API_ACTIONS.UPDATE}`);
+    const data = await response.json();
 
-    // Calculate elapsed time since the last frame.
-    const now = currentTime;
-    const elapsed = now - then;
-
-    // If enough time has elapsed, draw the next frame
-    if (elapsed > fpsInterval) {
-        // Get ready for next frame by setting then=now, but also adjust for 
-        // potential lag by subtracting the remainder of elapsed % fpsInterval
-        then = now - (elapsed % fpsInterval);
-
-        // --- Core game logic ---
-        const response = await fetch('api.php?action=update');
-        units = await response.json();
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawGrid();
-        drawUnits();
+    if (data && data.units) {
+        units = data.units;
     }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawGrid();
+    drawUnits();
 }
 
-// Function to start the animation with a specific FPS
-function startLoop(fps) {
-    // A '0' FPS means run at max speed
-    if (fps === 0) {
-        fpsInterval = 0;
-    } else {
-        fpsInterval = 1000 / fps;
+/**
+ * Starts or restarts the simulation with a specified target FPS.
+ * This function now uses setInterval.
+ * @param {number} fps The target frames per second.
+ */
+function startSimulation(fps) {
+    if (simulationIntervalId) {
+        clearInterval(simulationIntervalId);
     }
-    
-    then = window.performance.now();
-    startTime = then;
-    
-    // Stop any previously running loop
-    if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-    }
-    
-    // Start the new loop
-    gameLoop();
+    const interval = fps > 0 ? 1000 / fps : 16;
+    simulationIntervalId = setInterval(updateAndDraw, interval);
 }
 
-// Initialization function
+/**
+ * Initializes the simulation.
+ * It fetches the configuration and initial state, sets up the canvas,
+ * and starts the simulation loop.
+ */
 async function init() {
-    console.log("Initializing simulation...");
-    const response = await fetch('api.php?action=init');
-    units = await response.json();
-    console.log(`Loaded ${units.length} units.`);
-    
-    // Start the game loop at 20 FPS by default
-    startLoop(60);
+    try {
+        console.log("Initializing simulation...");
+        const response = await fetch(`api.php?action=${CONSTANTS.API_ACTIONS.INIT}`);
+        const data = await response.json();
+
+        if (!data || !data.config || !data.units) {
+            console.error("Invalid data received from initialization API.", data);
+            alert("Error: Could not initialize the simulation. Check the console for details.");
+            return;
+        }
+
+        config = data.config;
+        units = data.units;
+
+        canvas.width = config.WORLD_SIZE;
+        canvas.height = config.WORLD_SIZE;
+
+        console.log(`Loaded config and ${units.length} units.`);
+
+        startSimulation(20);
+
+    } catch (error) {
+        console.error("Failed to initialize:", error);
+        alert("A critical error occurred while starting the simulation. Check the console.");
+    }
 }
 
-// Start the whole process
+// Kick off the application.
 init();

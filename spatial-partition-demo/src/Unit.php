@@ -71,7 +71,7 @@ class Unit
         $this->x = $x;
         $this->y = $y;
 
-        // Automatically add the unit to the grid upon creation.
+        // Automatically add the unit to the grid upon creation. // remove grid depen
         $this->grid->add($this);
     }
 }

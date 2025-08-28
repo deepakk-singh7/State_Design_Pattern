@@ -1,6 +1,7 @@
 <?php
 
 require_once 'Unit.php';
+require_once 'ApiActions.php';
 
 /**
  * This class manages all units, partitions the world into cells,
@@ -8,17 +9,18 @@ require_once 'Unit.php';
  */
 class Grid
 {
-    /** The total width and height of the simulation world in pixels. */
-    public const WORLD_SIZE = 600;
 
-    /** The number of cells along one axis of the grid (e.g., 10x10). */
-    public const NUM_CELLS = 10;
-    
-    /** The size of each square cell, derived from world size and cell count. */
-    public const CELL_SIZE = self::WORLD_SIZE / self::NUM_CELLS;
+    /** @var int The total width and height of the world. */
+    private int $worldSize;
+    /** @var int The number of cells along one axis. */
+    private int $numCells;
+    /** @var float The size of each grid cell. */
+    private float $cellSize;
+    /** @var float The distance to be considered "near". */
+    private float $proximityDistance;
+    /** @var float The movement speed multiplier for units. */
+    private float $unitSpeed;
 
-    /** The distance within which units are considered "near" each other. */
-    public const PROXIMITY_DISTANCE = 7.0; 
 
     /**
      * The 2D array representing the grid. Each element stores the head
@@ -36,10 +38,17 @@ class Grid
     /**
      * Grid constructor. Initializes the 2D cells array with null values.
      */
-    public function __construct()
+    public function __construct(object $config)
     {
-        for ($x = 0; $x < self::NUM_CELLS; $x++) {
-            for ($y = 0; $y < self::NUM_CELLS; $y++) {
+        // Initialize properties from the configuration object.
+        $this->worldSize = $config->WORLD_SIZE;
+        $this->numCells = $config->NUM_CELLS;
+        $this->proximityDistance = $config->PROXIMITY_DISTANCE;
+        $this->unitSpeed = $config->UNIT_SPEED;
+        $this->cellSize = $this->worldSize / $this->numCells;
+
+        for ($x = 0; $x < $this->numCells; $x++) {
+            for ($y = 0; $y < $this->numCells; $y++) {
                 $this->cells[$x][$y] = null;
             }
         }
@@ -59,8 +68,8 @@ class Grid
         $this->units[] = $unit;
         
         // Determine which grid cell the unit is in based on its position.
-        $cellX = (int)($unit->x / self::CELL_SIZE);
-        $cellY = (int)($unit->y / self::CELL_SIZE);
+        $cellX = (int)($unit->x / $this->cellSize);
+        $cellY = (int)($unit->y / $this->cellSize);
 
         // Insert the unit at the front of the cell's linked list.
         $unit->prev = null; 
@@ -86,14 +95,14 @@ class Grid
     public function move(Unit $unit, float $x, float $y): void
     {
         // Calculate old and new cell coordinates.
-        $oldCellX = (int)($unit->x / self::CELL_SIZE);
-        $oldCellY = (int)($unit->y / self::CELL_SIZE);
+        $oldCellX = (int)($unit->x / $this->cellSize);
+        $oldCellY = (int)($unit->y / $this->cellSize);
         
         $unit->x = $x;
         $unit->y = $y;
 
-        $newCellX = (int)($unit->x / self::CELL_SIZE);
-        $newCellY = (int)($unit->y / self::CELL_SIZE);
+        $newCellX = (int)($unit->x / $this->cellSize);
+        $newCellY = (int)($unit->y / $this->cellSize);
 
         // If the unit is still in the same cell, do nothing else. [Optimization...]
         if ($oldCellX == $newCellX && $oldCellY == $newCellY) return;
@@ -121,23 +130,23 @@ class Grid
         // Phase 1: Move all units and reset their 'isNear' state.
         foreach ($this->units as $unit) {
             $unit->isNear = false;
-            $newX = $unit->x + (rand(-10, 10) / 100) * 1.5;
-            $newY = $unit->y + (rand(-10, 10) / 100) * 1.5;
-            // $newX = $unit->x + (rand(-100, 100) / 100) * 1.5;
-            // $newY = $unit->y + (rand(-100, 100) / 100) * 1.5;
+            $newX = $unit->x + (rand(-10, 10) / 100) * $this->unitSpeed;
+            $newY = $unit->y + (rand(-10, 10) / 100) * $this->unitSpeed;
+            // $newX = $unit->x + (rand(-100, 100) / 100) * $this->unitSpeed;
+            // $newY = $unit->y + (rand(-100, 100) / 100) * $this->unitSpeed;
 
             // Enforce world boundaries.
             if ($newX < 0) $newX = 0;
-            if ($newX > self::WORLD_SIZE) $newX = self::WORLD_SIZE;
+            if ($newX > $this->worldSize) $newX = $this->worldSize;
             if ($newY < 0) $newY = 0;
-            if ($newY > self::WORLD_SIZE) $newY = self::WORLD_SIZE;
+            if ($newY > $this->worldSize) $newY = $this->worldSize;
             
             $this->move($unit, $newX, $newY);
         }
 
         // Phase 2: Iterate through each cell and check for proximity. [this is the core optimization of the pattern.]
-        for ($x = 0; $x < self::NUM_CELLS; $x++) {
-            for ($y = 0; $y < self::NUM_CELLS; $y++) {
+        for ($x = 0; $x < $this->numCells; $x++) {
+            for ($y = 0; $y < $this->numCells; $y++) {
                 $this->checkProximityInCell($this->cells[$x][$y]);
             }
         }
@@ -158,7 +167,7 @@ class Grid
                 $distY = $unit->y - $other->y;
                 $distance = sqrt($distX * $distX + $distY * $distY);
 
-                if ($distance < self::PROXIMITY_DISTANCE) {
+                if ($distance < $this->proximityDistance) {
                     $unit->isNear = true;
                     $other->isNear = true;
                 }
@@ -179,10 +188,10 @@ class Grid
         $state = [];
         foreach ($this->units as $unit) {
             $state[] = [
-                'id' => $unit->id,
-                'x' => $unit->x,
-                'y' => $unit->y,
-                'isNear' => $unit->isNear,
+                ReturnState::ID => $unit->id,
+                ReturnState::X => $unit->x,
+                ReturnState::Y => $unit->y,
+                ReturnState::IS_NEAR => $unit->isNear,
             ];
         }
         return $state;
