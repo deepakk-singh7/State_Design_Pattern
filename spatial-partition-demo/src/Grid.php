@@ -2,6 +2,7 @@
 
 require_once 'Unit.php';
 require_once 'ApiActions.php';
+require_once 'utils/UnitUtilsFuntions.php';
 
 /**
  * This class manages all units, partitions the world into cells,
@@ -43,7 +44,7 @@ class Grid
         // Initialize properties from the configuration object.
         $this->worldSize = $config->WORLD_SIZE;
         $this->numCells = $config->NUM_CELLS;
-        $this->proximityDistance = $config->PROXIMITY_DISTANCE;
+        $this->proximityDistance = $config->PROXIMITY_DISTANCE_SQUARE;
         $this->unitSpeed = $config->UNIT_SPEED;
         $this->cellSize = $this->worldSize / $this->numCells;
 
@@ -95,25 +96,31 @@ class Grid
     public function move(Unit $unit, float $x, float $y): void
     {
         // Calculate old and new cell coordinates.
-        $oldCellX = (int)($unit->x / $this->cellSize);
-        $oldCellY = (int)($unit->y / $this->cellSize);
+        // $oldCellX = (int)($unit->x / $this->cellSize);
+        // $oldCellY = (int)($unit->y / $this->cellSize);
         
-        $unit->x = $x;
-        $unit->y = $y;
+        // $unit->x = $x;
+        // $unit->y = $y;
 
-        $newCellX = (int)($unit->x / $this->cellSize);
-        $newCellY = (int)($unit->y / $this->cellSize);
+        // $newCellX = (int)($unit->x / $this->cellSize);
+        // $newCellY = (int)($unit->y / $this->cellSize);
+
+        // MODIFICATION... 
+        // Call the static utility function to handle calculations and update the unit's x/y.
+        // The result is an associative array.
+        $coords = UnitUtilsFunctions::updateAndCalculateCoordinates($unit, $x, $y, $this->cellSize);
 
         // If the unit is still in the same cell, do nothing else. [Optimization...]
-        if ($oldCellX == $newCellX && $oldCellY == $newCellY) return;
+        // if ($oldCellX == $newCellX && $oldCellY  == $newCellY) return;
+        if($coords['oldCellX'] === $coords['newCellX'] && $coords['oldCellY'] === $coords['newCellY']) return;
 
         // Unlink the unit from its old cell's linked list.
         if ($unit->prev !== null) $unit->prev->next = $unit->next;
         if ($unit->next !== null) $unit->next->prev = $unit->prev;
 
         // If it was the head of the list, update the cell's head pointer.
-        if ($this->cells[$oldCellX][$oldCellY] === $unit) {
-            $this->cells[$oldCellX][$oldCellY] = $unit->next;
+        if ($this->cells[$coords['oldCellX']][$coords['oldCellY']] === $unit) {
+            $this->cells[$coords['oldCellX']][$coords['oldCellY']] = $unit->next;
         }
 
         // Re-add the unit to the grid, which will place it in the correct new cell.
@@ -130,24 +137,32 @@ class Grid
         // Phase 1: Move all units and reset their 'isNear' state.
         foreach ($this->units as $unit) {
             $unit->isNear = false;
-            $newX = $unit->x + (rand(-10, 10) / 100) * $this->unitSpeed;
-            $newY = $unit->y + (rand(-10, 10) / 100) * $this->unitSpeed;
-            // $newX = $unit->x + (rand(-100, 100) / 100) * $this->unitSpeed;
-            // $newY = $unit->y + (rand(-100, 100) / 100) * $this->unitSpeed;
 
-            // Enforce world boundaries.
-            if ($newX < 0) $newX = 0;
-            if ($newX > $this->worldSize) $newX = $this->worldSize;
-            if ($newY < 0) $newY = 0;
-            if ($newY > $this->worldSize) $newY = $this->worldSize;
+             // Call the utility function to get the new position.
+            $newPosition = UnitUtilsFunctions::calculateNewPosition(
+                $unit,
+                $this->unitSpeed,
+                $this->worldSize
+            );
+            // $newX = $unit->x + (rand(-10, 10) / 100) * $this->unitSpeed;
+            // $newY = $unit->y + (rand(-10, 10) / 100) * $this->unitSpeed;
+            // // $newX = $unit->x + (rand(-100, 100) / 100) * $this->unitSpeed;
+            // // $newY = $unit->y + (rand(-100, 100) / 100) * $this->unitSpeed;
+
+            // // Enforce world boundaries.
+            // if ($newX < 0) $newX = 0;
+            // if ($newX > $this->worldSize) $newX = $this->worldSize;
+            // if ($newY < 0) $newY = 0;
+            // if ($newY > $this->worldSize) $newY = $this->worldSize;
             
-            $this->move($unit, $newX, $newY);
+            $this->move($unit, $newPosition['x'], $newPosition['y']);
         }
 
         // Phase 2: Iterate through each cell and check for proximity. [this is the core optimization of the pattern.]
         for ($x = 0; $x < $this->numCells; $x++) {
             for ($y = 0; $y < $this->numCells; $y++) {
-                $this->checkProximityInCell($this->cells[$x][$y]);
+                // $this->checkProximityInCell($this->cells[$x][$y]);
+                UnitUtilsFunctions::checkProximityInCell($this->cells[$x][$y],$this->proximityDistance);
             }
         }
     }
@@ -158,24 +173,25 @@ class Grid
      *
      * @param Unit|null $unit The head of the linked list for a cell.
      */
-    private function checkProximityInCell(?Unit $unit): void
-    {
-        while ($unit !== null) {
-            $other = $unit->next;
-            while ($other !== null) {
-                $distX = $unit->x - $other->x;
-                $distY = $unit->y - $other->y;
-                $distance = sqrt($distX * $distX + $distY * $distY);
+    // private function checkProximityInCell(?Unit $unit): void
+    // {
+    //     while ($unit !== null) {
+    //         $other = $unit->next;
+    //         while ($other !== null) {
+    //             $distX = $unit->x - $other->x;
+    //             $distY = $unit->y - $other->y;
+    //             // removing sqrt function, [ d2 = x2 + y2];
+    //             $distance = $distX * $distX + $distY * $distY;
 
-                if ($distance < $this->proximityDistance) {
-                    $unit->isNear = true;
-                    $other->isNear = true;
-                }
-                $other = $other->next;
-            }
-            $unit = $unit->next;
-        }
-    }
+    //             if ($distance < $this->proximityDistance) {
+    //                 $unit->isNear = true;
+    //                 $other->isNear = true;
+    //             }
+    //             $other = $other->next;
+    //         }
+    //         $unit = $unit->next;
+    //     }
+    // }
 
     /**
      * Gathers the current state of all units into a simple array.

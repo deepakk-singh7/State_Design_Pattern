@@ -107,7 +107,9 @@ async function init() {
     try {
         console.log("Initializing simulation...");
         const response = await fetch(`api.php?action=${CONSTANTS.API_ACTIONS.INIT}`);
+        console.log('Response :: ', response);
         const data = await response.json();
+        console.log('Data :: ', data);
 
         if (!data || !data.config || !data.units) {
             console.error("Invalid data received from initialization API.", data);
