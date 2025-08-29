@@ -18,7 +18,7 @@ class Grid
     /** @var float The size of each grid cell. */
     private float $cellSize;
     /** @var float The distance to be considered "near". */
-    private float $proximityDistance;
+    private float $proximityDistanceSquare;
     /** @var float The movement speed multiplier for units. */
     private float $unitSpeed;
 
@@ -44,13 +44,13 @@ class Grid
         // Initialize properties from the configuration object.
         $this->worldSize = $config->WORLD_SIZE;
         $this->numCells = $config->NUM_CELLS;
-        $this->proximityDistance = $config->PROXIMITY_DISTANCE_SQUARE;
+        $this->proximityDistanceSquare = $config->PROXIMITY_DISTANCE_SQUARE;
         $this->unitSpeed = $config->UNIT_SPEED;
-        $this->cellSize = $this->worldSize / $this->numCells;
+        $this->cellSize = $this->worldSize / $this->numCells; // widht x height of each cell
 
-        for ($x = 0; $x < $this->numCells; $x++) {
-            for ($y = 0; $y < $this->numCells; $y++) {
-                $this->cells[$x][$y] = null;
+        for ($x = 0; $x < $this->numCells; $x++) { // 0 -> 9
+            for ($y = 0; $y < $this->numCells; $y++) { // 0 ->9
+                $this->cells[$x][$y] = null; // [0][0] -> [9][9] => total 100
             }
         }
     }
@@ -63,24 +63,21 @@ class Grid
      *
      * @param Unit $unit The unit to add.
      */
-    public function add(Unit $unit): void
-    {
-        // Add to master list for easy global iteration (e.g., for moving all units).
-        $this->units[] = $unit;
+    public function add(Unit $unit): void{
+        // Add to master list for easy global iteration (e.g., for moving all units). Note : Only add to master list, if it's not already there, moving Units will be already there. 
+        if(!in_array($unit, $this->units,true)){
+            $this->units[] = $unit;
+        }
         
-        // Determine which grid cell the unit is in based on its position.
-        $cellX = (int)($unit->x / $this->cellSize);
-        $cellY = (int)($unit->y / $this->cellSize);
+        // Determine which cell the unit is in, based on its coordinates.
+        ['x' => $cellX, 'y' => $cellY] = UnitUtilsFunctions::getCellCoordinates($unit, $this->cellSize, $this->numCells);
 
         // Insert the unit at the front of the cell's linked list.
-        $unit->prev = null; 
-        $unit->next = $this->cells[$cellX][$cellY] ?? null;
-        $this->cells[$cellX][$cellY] = $unit;
+        // Get the head of this cell 
+        // $headOfCell = $this->cells[$cellX][$cellY]; // In this way I'm just copying the referance, won't work
 
-        // If there was already a unit in the list, update its 'prev' pointer.
-        if ($unit->next !== null) {
-            $unit->next->prev = $unit;
-        }
+        // Insert the unit at the front of the cell's linked list.
+        UnitUtilsFunctions::addUnit($unit,$this->cells[$cellX][$cellY]); // We are passing reference of the head...
     }
 
     /**
@@ -95,35 +92,35 @@ class Grid
      */
     public function move(Unit $unit, float $x, float $y): void
     {
+        // Verify the move() parameters // Not checking the data type and accepted values yet. 
+        if(!$unit || !$x || !$y) return;
+
         // Calculate old and new cell coordinates.
-        // $oldCellX = (int)($unit->x / $this->cellSize);
-        // $oldCellY = (int)($unit->y / $this->cellSize);
+        ['x' => $oldCellX, 'y' => $oldCellY] = UnitUtilsFunctions::getCellCoordinates($unit,$this->cellSize, $this->numCells);
         
-        // $unit->x = $x;
-        // $unit->y = $y;
+        //  Update the unit coordinate
+        $unit->x = $x;
+        $unit->y = $y;
 
-        // $newCellX = (int)($unit->x / $this->cellSize);
-        // $newCellY = (int)($unit->y / $this->cellSize);
+        // get the new Cell Coordinate
+        ['x' => $newCellX, 'y' => $newCellY] = UnitUtilsFunctions::getCellCoordinates($unit, $this->cellSize, $this->numCells);
 
-        // MODIFICATION... 
-        // Call the static utility function to handle calculations and update the unit's x/y.
-        // The result is an associative array.
-        $coords = UnitUtilsFunctions::updateAndCalculateCoordinates($unit, $x, $y, $this->cellSize);
 
         // If the unit is still in the same cell, do nothing else. [Optimization...]
-        // if ($oldCellX == $newCellX && $oldCellY  == $newCellY) return;
-        if($coords['oldCellX'] === $coords['newCellX'] && $coords['oldCellY'] === $coords['newCellY']) return;
+        if ($oldCellX === $newCellX && $oldCellY  === $newCellY) return;
 
-        // Unlink the unit from its old cell's linked list.
-        if ($unit->prev !== null) $unit->prev->next = $unit->next;
-        if ($unit->next !== null) $unit->next->prev = $unit->prev;
+        // If cell change, chage the data structure of old cell and add it to new one.
 
-        // If it was the head of the list, update the cell's head pointer.
-        if ($this->cells[$coords['oldCellX']][$coords['oldCellY']] === $unit) {
-            $this->cells[$coords['oldCellX']][$coords['oldCellY']] = $unit->next;
-        }
+        // 1: Get a reference to the head node of the old cell 
 
-        // Re-add the unit to the grid, which will place it in the correct new cell.
+        // $headOfOldCell = $this->cells[$oldCellX][$oldCellY];
+
+        // 2: Unlink unit from the old Cell
+
+        UnitUtilsFunctions::unlinkUnit($unit,$this->cells[$oldCellX][$oldCellY]);  
+
+        // Re-add the unit to the grid. The add() method will automatically place it
+        // in the correct new cell based on its updated coordinates.
         $this->add($unit);
     }
 
@@ -144,16 +141,6 @@ class Grid
                 $this->unitSpeed,
                 $this->worldSize
             );
-            // $newX = $unit->x + (rand(-10, 10) / 100) * $this->unitSpeed;
-            // $newY = $unit->y + (rand(-10, 10) / 100) * $this->unitSpeed;
-            // // $newX = $unit->x + (rand(-100, 100) / 100) * $this->unitSpeed;
-            // // $newY = $unit->y + (rand(-100, 100) / 100) * $this->unitSpeed;
-
-            // // Enforce world boundaries.
-            // if ($newX < 0) $newX = 0;
-            // if ($newX > $this->worldSize) $newX = $this->worldSize;
-            // if ($newY < 0) $newY = 0;
-            // if ($newY > $this->worldSize) $newY = $this->worldSize;
             
             $this->move($unit, $newPosition['x'], $newPosition['y']);
         }
@@ -162,36 +149,10 @@ class Grid
         for ($x = 0; $x < $this->numCells; $x++) {
             for ($y = 0; $y < $this->numCells; $y++) {
                 // $this->checkProximityInCell($this->cells[$x][$y]);
-                UnitUtilsFunctions::checkProximityInCell($this->cells[$x][$y],$this->proximityDistance);
+                UnitUtilsFunctions::checkProximityInCell($this->cells[$x][$y],$this->proximityDistanceSquare);
             }
         }
     }
-
-    /**
-     * Checks for proximity between all units within a single cell's linked list.
-     * This is an O(n^2) check, but 'n' is very small, making it fast.
-     *
-     * @param Unit|null $unit The head of the linked list for a cell.
-     */
-    // private function checkProximityInCell(?Unit $unit): void
-    // {
-    //     while ($unit !== null) {
-    //         $other = $unit->next;
-    //         while ($other !== null) {
-    //             $distX = $unit->x - $other->x;
-    //             $distY = $unit->y - $other->y;
-    //             // removing sqrt function, [ d2 = x2 + y2];
-    //             $distance = $distX * $distX + $distY * $distY;
-
-    //             if ($distance < $this->proximityDistance) {
-    //                 $unit->isNear = true;
-    //                 $other->isNear = true;
-    //             }
-    //             $other = $other->next;
-    //         }
-    //         $unit = $unit->next;
-    //     }
-    // }
 
     /**
      * Gathers the current state of all units into a simple array.

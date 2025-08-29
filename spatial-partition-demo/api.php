@@ -2,6 +2,7 @@
 
 session_start();
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
 
 require_once 'src/Grid.php';
 require_once 'src/ApiActions.php';
@@ -18,7 +19,6 @@ if (!file_exists($configFile)) {
 
 // 2. Read the file and decode the JSON.
 $config = json_decode(file_get_contents($configFile));
-
 // 3. Check if JSON decoding was successful.
 if ($config === null) {
     http_response_code(500);
@@ -33,7 +33,7 @@ switch ($action) {
     // The 'init' action creates a new simulation.
     case ApiActions::INIT:
         $grid = new Grid($config);
-        /// Create 150 units at random positions for the larger world.
+        /// Create units at random positions for the larger world.
         for ($i = 0; $i < $config->UNIT_COUNT; $i++) {
             $unit = new Unit($i, rand(0, $config->WORLD_SIZE), rand(0, $config->WORLD_SIZE));
             $grid->add($unit);
@@ -45,7 +45,7 @@ switch ($action) {
         'config' => $config,
         'units' => $grid->getUnitsState()
     ]);
-        break;
+    break;
 
     // The 'update' action advances the simulation by one frame.
     case ApiActions::UPDATE:
@@ -59,6 +59,16 @@ switch ($action) {
             $_SESSION[ApiActions::GRID] = serialize($grid);
             // Send the new state back to the frontend.
             echo json_encode(['units' => $grid->getUnitsState()]);
+        }else {
+            // Handle cases where update is called before init.
+            http_response_code(400); // Bad Request
+            echo json_encode(['error' => 'No simulation found in session. Please call "init" first.']);
         }
+        break;
+
+        default:
+        // Handle unknown actions
+        http_response_code(400); // Bad Request
+        echo json_encode(['error' => 'Unknown action specified.']);
         break;
 }

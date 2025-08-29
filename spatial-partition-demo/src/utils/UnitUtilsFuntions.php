@@ -7,6 +7,57 @@ require_once __DIR__ . '/../Grid.php';
 class UnitUtilsFunctions
 {
     /**
+     * Get the cell coordinate based on the unit coordinate and cellsize.
+     * @param Unit $unit
+     * @param int $cellSize
+     * @return array{x: int, y: int}
+     */
+    public static function getCellCoordinates(Unit $unit, float $cellSize, int $numCells):array{
+        $cellX = (int)min(($unit->x / $cellSize),$numCells-1); // x == 600 and cellSize is 60 cellX = 10 which is out of bound.. 
+        $cellY = (int)min(($unit->y / $cellSize), $numCells-1);
+        // $cellX = min((int)($unit->x / $cellSize), $numCells - 1);
+        // $cellY = min((int)($unit->y / $cellSize), $numCells - 1);
+        return ['x' => $cellX, 'y' => $cellY];
+    }
+    //2: Unlink a unit [node] from the cell [ doubly linked list] 
+    public static function unlinkUnit(Unit $unit, ?Unit &$head):void{
+        // unit can be 1: null, only one node, head, last element or the middle element. 
+
+        // If unit prev node exits then update its pointer else it will be the head
+        if($unit->prev !== null){
+            $unit->prev->next = $unit->next;
+        }else {
+            $head = $unit->next;
+        }
+
+        // If unit next node exits, update its pointer else it will be last node[do nothing]
+        if($unit->next !==null){
+            $unit->next->prev = $unit->prev;
+        }
+
+        // make the next and prev pointers of unit null
+        $unit->next = null; 
+        $unit->prev = null;
+    }
+
+    // 3: Add an Unit(Node) at front to the Cell(List);
+    /**
+     * @param Unit $unit
+     * @param mixed $head
+     * @return void
+     */
+    public static function addUnit(Unit $unit, ?Unit &$head):void{
+
+        $unit->prev = null;
+        $unit->next = $head;
+        
+        // If there was already a unit in the list, update its 'prev' pointer.
+        if($head !==null){
+            $head->prev = $unit;
+        }
+        $head = $unit;
+    }
+    /**
      * Updates a unit's position and calculates its old and new grid cell coordinates.
      *
      * @param Unit $unit The unit object (passed by reference).
@@ -49,7 +100,7 @@ class UnitUtilsFunctions
     public static function calculateNewPosition(Unit $unit, float $unitSpeed, int $worldSize): array
     {
         // Calculate a random movement vector.
-        $newX = $unit->x + (rand(-10, 10) / 100) * $unitSpeed;
+        $newX = $unit->x + (rand(-10, 10) / 100) * $unitSpeed; // convert rand() into utility functions.. so that it can use across all the applications. m
         $newY = $unit->y + (rand(-10, 10) / 100) * $unitSpeed;
 
         // Enforce world boundaries.
@@ -61,22 +112,42 @@ class UnitUtilsFunctions
         return ['x' => $newX, 'y' => $newY];
     }
 
-    public static function checkProximityInCell(?Unit $unit, float $proximityDistance):void{
-        while ($unit !== null) {
-            $other = $unit->next;
-            while ($other !== null) {
-                $distX = $unit->x - $other->x;
-                $distY = $unit->y - $other->y;
-                // removing sqrt function, [ d2 = x2 + y2];
-                $distance = $distX * $distX + $distY * $distY;
+    public static function checkProximityInCell(?Unit $head, float $proximityDistanceSquare):void{
+    $unit = $head; // Use local variable instead of modifying parameter
+    while ($unit !== null) {
+        $other = $unit->next;
+        while ($other !== null) {
+            $distX = $unit->x - $other->x;
+            $distY = $unit->y - $other->y;
+            $distance = $distX * $distX + $distY * $distY;
 
-                if ($distance < $proximityDistance) {
-                    $unit->isNear = true;
-                    $other->isNear = true;
-                }
-                $other = $other->next;
+            if ($distance < $proximityDistanceSquare) {
+                $unit->isNear = true;
+                $other->isNear = true;
             }
-            $unit = $unit->next;
+            $other = $other->next;
         }
+        $unit = $unit->next;
     }
+}
+
+
+    // public static function checkProximityInCell(?Unit &$unit, float $proximityDistanceSquare):void{
+    //     while ($unit !== null) { // O(n2)
+    //         $other = $unit->next;
+    //         while ($other !== null) {
+    //             $distX = $unit->x - $other->x;
+    //             $distY = $unit->y - $other->y;
+    //             // removing sqrt function, [ d2 = x2 + y2];
+    //             $distance = $distX * $distX + $distY * $distY;
+
+    //             if ($distance < $proximityDistanceSquare) {
+    //                 $unit->isNear = true;
+    //                 $other->isNear = true;
+    //             }
+    //             $other = $other->next;
+    //         }
+    //         $unit = $unit->next;
+    //     }
+    // }
 }

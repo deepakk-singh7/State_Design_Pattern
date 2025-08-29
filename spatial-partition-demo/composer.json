@@ -1,0 +1,11 @@
+{
+    "name": "deepak/spatial-partition-demo",
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "classmap": [
+            "src/"
+        ]
+    }
+}
