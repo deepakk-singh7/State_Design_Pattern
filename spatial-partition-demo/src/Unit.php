@@ -1,5 +1,7 @@
 <?php
 
+namespace App;
+
 /**
  * Represents a single entity in the simulation world.
  *

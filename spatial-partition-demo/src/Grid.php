@@ -1,9 +1,9 @@
 <?php
 
+namespace App;
+
 require_once 'Unit.php';
 require_once 'ApiActions.php';
-require_once 'utils/UnitUtilsFuntions.php';
-
 /**
  * This class manages all units, partitions the world into cells,
  * and handles the simulation logic for moving units and detecting proximity.
@@ -61,9 +61,10 @@ class Grid
      * It adds the unit to the master list and then inserts it into the
      * beginning of the linked list for the appropriate grid cell.
      *
-     * @param Unit $unit The unit to add.
+     * @param Unit $unit The unit to be added in the cell and units[] [Pass by reference]
+     * @return void
      */
-    public function add(Unit $unit): void{
+    public function add(Unit &$unit): void{
         // Add to master list for easy global iteration (e.g., for moving all units). Note : Only add to master list, if it's not already there, moving Units will be already there. 
         if(!in_array($unit, $this->units,true)){
             $this->units[] = $unit;
@@ -90,7 +91,7 @@ class Grid
      * @param float $x The new X-coordinate.
      * @param float $y The new Y-coordinate.
      */
-    public function move(Unit $unit, float $x, float $y): void
+    public function move(Unit &$unit, float $x, float $y): void
     {
         // Verify the move() parameters // Not checking the data type and accepted values yet. 
         if(!$unit || !$x || !$y) return;
@@ -135,7 +136,7 @@ class Grid
         foreach ($this->units as $unit) {
             $unit->isNear = false;
 
-             // Call the utility function to get the new position.
+             // Get the new position.
             $newPosition = UnitUtilsFunctions::calculateNewPosition(
                 $unit,
                 $this->unitSpeed,
@@ -148,7 +149,6 @@ class Grid
         // Phase 2: Iterate through each cell and check for proximity. [this is the core optimization of the pattern.]
         for ($x = 0; $x < $this->numCells; $x++) {
             for ($y = 0; $y < $this->numCells; $y++) {
-                // $this->checkProximityInCell($this->cells[$x][$y]);
                 UnitUtilsFunctions::checkProximityInCell($this->cells[$x][$y],$this->proximityDistanceSquare);
             }
         }

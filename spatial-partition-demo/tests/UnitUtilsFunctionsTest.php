@@ -3,83 +3,180 @@
 namespace Tests;
 
 use PHPUnit\Framework\TestCase;
-use Unit;
-use UnitUtilsFunctions;
+
+// Import the classes from your application's source code with correct namespaces
+use App\Unit;
+use App\utils\UnitUtilsFunctions; 
+use InvalidArgumentException;
 
 /**
  * Test suite for the UnitUtilsFunctions class.
  */
 class UnitUtilsFunctionsTest extends TestCase
 {
-    // 1 : Test for updateAndCalculateCoordinates()
+    // // 1 : Test for updateAndCalculateCoordinates()
+    // /**
+    //  * @dataProvider coordinatesProvider
+    //  */
+    // public function testUpdateAndCalculateCoordinates(
+    //     float $initialX,
+    //     float $initialY,
+    //     float $newX,
+    //     float $newY,
+    //     float $cellSize,
+    //     array $expectedResult
+    // ): void {
+    //     // ARRANGE: Create a unit with initial coordinates.
+    //     $unit = new Unit(1, $initialX, $initialY);
+
+    //     // ACT: Call the function to update the unit's position and get cell coordinates.
+    //     $result = UnitUtilsFunctions::updateAndCalculateCoordinates($unit, $newX, $newY, $cellSize);
+
+    //     // ASSERT: Verify that the unit's coordinates were updated correctly.
+    //     $this->assertEquals($newX, $unit->x, 'Unit X coordinate was not updated correctly.');
+    //     $this->assertEquals($newY, $unit->y, 'Unit Y coordinate was not updated correctly.');
+
+    //     // ASSERT: Verify that the returned old and new cell coordinates are correct.
+    //     $this->assertEquals($expectedResult, $result, 'The calculated cell coordinates are incorrect.');
+    // }
+
+    // /**
+    //  * Data provider for testUpdateAndCalculateCoordinates.
+    //  *
+    //  * Provides various scenarios including:
+    //  * - No cell change
+    //  * - Horizontal cell change
+    //  * - Vertical cell change
+    //  * - Diagonal cell change
+    //  * - Movement from a boundary
+    //  */
+    // public static function coordinatesProvider(): array
+    // {
+    //     return [
+    //         'no cell change' => [
+    //             /* initialX, initialY */ 5.0, 5.0,
+    //             /* newX, newY */       8.0, 8.0,
+    //             /* cellSize */         10.0,
+    //             /* expectedResult */   ['oldCellX' => 0, 'oldCellY' => 0, 'newCellX' => 0, 'newCellY' => 0]
+    //         ],
+    //         'horizontal cell change' => [
+    //             /* initialX, initialY */ 8.0, 5.0,
+    //             /* newX, newY */       12.0, 5.0,
+    //             /* cellSize */         10.0,
+    //             /* expectedResult */   ['oldCellX' => 0, 'oldCellY' => 0, 'newCellX' => 1, 'newCellY' => 0]
+    //         ],
+    //         'vertical cell change' => [
+    //             /* initialX, initialY */ 5.0, 9.0,
+    //             /* newX, newY */       5.0, 11.0,
+    //             /* cellSize */         10.0,
+    //             /* expectedResult */   ['oldCellX' => 0, 'oldCellY' => 0, 'newCellX' => 0, 'newCellY' => 1]
+    //         ],
+    //         'diagonal cell change' => [
+    //             /* initialX, initialY */ 18.0, 19.0,
+    //             /* newX, newY */       21.0, 22.0,
+    //             /* cellSize */         20.0,
+    //             /* expectedResult */   ['oldCellX' => 0, 'oldCellY' => 0, 'newCellX' => 1, 'newCellY' => 1]
+    //         ],
+    //         'movement from a boundary' => [
+    //             /* initialX, initialY */ 10.0, 10.0,
+    //             /* newX, newY */       9.9, 9.9,
+    //             /* cellSize */         10.0,
+    //             /* expectedResult */   ['oldCellX' => 1, 'oldCellY' => 1, 'newCellX' => 0, 'newCellY' => 0]
+    //         ],
+    //     ];
+    // }
+
     /**
-     * @dataProvider coordinatesProvider
+     * @dataProvider \Tests\DataProviders\UtilsDataProvider::validCoordinatesProvider
      */
-    public function testUpdateAndCalculateCoordinates(
-        float $initialX,
-        float $initialY,
-        float $newX,
-        float $newY,
+    public function testGetCellCoordinatesValid(
+        float $unitX,
+        float $unitY,
         float $cellSize,
+        int $numCells,
         array $expectedResult
     ): void {
-        // ARRANGE: Create a unit with initial coordinates.
-        $unit = new Unit(1, $initialX, $initialY);
+        // ARRANGE: Create a unit with given coordinates
+        $unit = new Unit(1, $unitX, $unitY);
 
-        // ACT: Call the function to update the unit's position and get cell coordinates.
-        $result = UnitUtilsFunctions::updateAndCalculateCoordinates($unit, $newX, $newY, $cellSize);
+        // ACT: Get cell coordinates
+        $result = UnitUtilsFunctions::getCellCoordinates($unit, $cellSize, $numCells);
 
-        // ASSERT: Verify that the unit's coordinates were updated correctly.
-        $this->assertEquals($newX, $unit->x, 'Unit X coordinate was not updated correctly.');
-        $this->assertEquals($newY, $unit->y, 'Unit Y coordinate was not updated correctly.');
-
-        // ASSERT: Verify that the returned old and new cell coordinates are correct.
-        $this->assertEquals($expectedResult, $result, 'The calculated cell coordinates are incorrect.');
+        // ASSERT: Verify correct cell coordinates
+        $this->assertEquals($expectedResult, $result);
     }
 
     /**
-     * Data provider for testUpdateAndCalculateCoordinates.
-     *
-     * Provides various scenarios including:
-     * - No cell change
-     * - Horizontal cell change
-     * - Vertical cell change
-     * - Diagonal cell change
-     * - Movement from a boundary
+     * @dataProvider invalidParametersProvider
      */
-    public static function coordinatesProvider(): array
+    public function testGetCellCoordinatesInvalidParameters(
+        float $unitX,
+        float $unitY,
+        float $cellSize,
+        int $numCells,
+        string $expectedExceptionMessage
+    ): void {
+        // ARRANGE: Create a unit
+        $unit = new Unit(1, $unitX, $unitY);
+
+        // ASSERT: Expect exception
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage($expectedExceptionMessage);
+
+        // ACT: Call function with invalid parameters
+        UnitUtilsFunctions::getCellCoordinates($unit, $cellSize, $numCells);
+    }
+
+
+
+        /**
+     * Data provider for invalid parameter scenarios
+     */
+    public static function invalidParametersProvider(): array
     {
         return [
-            'no cell change' => [
-                /* initialX, initialY */ 5.0, 5.0,
-                /* newX, newY */       8.0, 8.0,
-                /* cellSize */         10.0,
-                /* expectedResult */   ['oldCellX' => 0, 'oldCellY' => 0, 'newCellX' => 0, 'newCellY' => 0]
+            'zero cell size' => [
+                /* unitX, unitY */ 100.0, 100.0,
+                /* cellSize */ 0.0,
+                /* numCells */ 10,
+                /* expectedMessage */ 'Cell size must be greater than 0, got: 0'
             ],
-            'horizontal cell change' => [
-                /* initialX, initialY */ 8.0, 5.0,
-                /* newX, newY */       12.0, 5.0,
-                /* cellSize */         10.0,
-                /* expectedResult */   ['oldCellX' => 0, 'oldCellY' => 0, 'newCellX' => 1, 'newCellY' => 0]
+            'negative cell size' => [
+                /* unitX, unitY */ 100.0, 100.0,
+                /* cellSize */ -50.0,
+                /* numCells */ 10,
+                /* expectedMessage */ 'Cell size must be greater than 0, got: -50'
             ],
-            'vertical cell change' => [
-                /* initialX, initialY */ 5.0, 9.0,
-                /* newX, newY */       5.0, 11.0,
-                /* cellSize */         10.0,
-                /* expectedResult */   ['oldCellX' => 0, 'oldCellY' => 0, 'newCellX' => 0, 'newCellY' => 1]
+            'zero num cells' => [
+                /* unitX, unitY */ 100.0, 100.0,
+                /* cellSize */ 60.0,
+                /* numCells */ 0,
+                /* expectedMessage */ 'Number of cells must be greater than 0, got: 0'
             ],
-            'diagonal cell change' => [
-                /* initialX, initialY */ 18.0, 19.0,
-                /* newX, newY */       21.0, 22.0,
-                /* cellSize */         20.0,
-                /* expectedResult */   ['oldCellX' => 0, 'oldCellY' => 0, 'newCellX' => 1, 'newCellY' => 1]
+            'negative num cells' => [
+                /* unitX, unitY */ 100.0, 100.0,
+                /* cellSize */ 60.0,
+                /* numCells */ -5,
+                /* expectedMessage */ 'Number of cells must be greater than 0, got: -5'
             ],
-            'movement from a boundary' => [
-                /* initialX, initialY */ 10.0, 10.0,
-                /* newX, newY */       9.9, 9.9,
-                /* cellSize */         10.0,
-                /* expectedResult */   ['oldCellX' => 1, 'oldCellY' => 1, 'newCellX' => 0, 'newCellY' => 0]
+            'negative unit x' => [
+                /* unitX, unitY */ -10.0, 100.0,
+                /* cellSize */ 60.0,
+                /* numCells */ 10,
+                /* expectedMessage */ 'Unit coordinates cannot be negative. Got x: -10, y: 100'
             ],
+            'negative unit y' => [
+                /* unitX, unitY */ 100.0, -20.0,
+                /* cellSize */ 60.0,
+                /* numCells */ 10,
+                /* expectedMessage */ 'Unit coordinates cannot be negative. Got x: 100, y: -20'
+            ],
+            'both negative coordinates' => [
+                /* unitX, unitY */ -50.0, -75.0,
+                /* cellSize */ 60.0,
+                /* numCells */ 10,
+                /* expectedMessage */ 'Unit coordinates cannot be negative. Got x: -50, y: -75'
+            ]
         ];
     }
 
