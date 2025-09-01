@@ -2,8 +2,12 @@
 
 namespace App;
 
-require_once 'Unit.php';
-require_once 'ApiActions.php';
+// require_once 'Unit.php';
+// require_once 'ApiActions.php';
+
+// 2. ADD a 'use' statement for the utility class
+use App\utils\UnitUtilsFunctions;
+
 /**
  * This class manages all units, partitions the world into cells,
  * and handles the simulation logic for moving units and detecting proximity.

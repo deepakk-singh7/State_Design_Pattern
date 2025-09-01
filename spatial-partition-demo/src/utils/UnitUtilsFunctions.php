@@ -1,10 +1,7 @@
 <?php
 
 
-// Declare the namespace corresponding to the directory structure
 namespace App\utils;
-
-// Import the Unit class from the parent namespace
 use App\Unit; 
 use InvalidArgumentException;
 

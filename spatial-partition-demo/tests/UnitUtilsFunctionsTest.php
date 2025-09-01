@@ -3,8 +3,6 @@
 namespace Tests;
 
 use PHPUnit\Framework\TestCase;
-
-// Import the classes from your application's source code with correct namespaces
 use App\Unit;
 use App\utils\UnitUtilsFunctions; 
 use InvalidArgumentException;
@@ -14,78 +12,6 @@ use InvalidArgumentException;
  */
 class UnitUtilsFunctionsTest extends TestCase
 {
-    // // 1 : Test for updateAndCalculateCoordinates()
-    // /**
-    //  * @dataProvider coordinatesProvider
-    //  */
-    // public function testUpdateAndCalculateCoordinates(
-    //     float $initialX,
-    //     float $initialY,
-    //     float $newX,
-    //     float $newY,
-    //     float $cellSize,
-    //     array $expectedResult
-    // ): void {
-    //     // ARRANGE: Create a unit with initial coordinates.
-    //     $unit = new Unit(1, $initialX, $initialY);
-
-    //     // ACT: Call the function to update the unit's position and get cell coordinates.
-    //     $result = UnitUtilsFunctions::updateAndCalculateCoordinates($unit, $newX, $newY, $cellSize);
-
-    //     // ASSERT: Verify that the unit's coordinates were updated correctly.
-    //     $this->assertEquals($newX, $unit->x, 'Unit X coordinate was not updated correctly.');
-    //     $this->assertEquals($newY, $unit->y, 'Unit Y coordinate was not updated correctly.');
-
-    //     // ASSERT: Verify that the returned old and new cell coordinates are correct.
-    //     $this->assertEquals($expectedResult, $result, 'The calculated cell coordinates are incorrect.');
-    // }
-
-    // /**
-    //  * Data provider for testUpdateAndCalculateCoordinates.
-    //  *
-    //  * Provides various scenarios including:
-    //  * - No cell change
-    //  * - Horizontal cell change
-    //  * - Vertical cell change
-    //  * - Diagonal cell change
-    //  * - Movement from a boundary
-    //  */
-    // public static function coordinatesProvider(): array
-    // {
-    //     return [
-    //         'no cell change' => [
-    //             /* initialX, initialY */ 5.0, 5.0,
-    //             /* newX, newY */       8.0, 8.0,
-    //             /* cellSize */         10.0,
-    //             /* expectedResult */   ['oldCellX' => 0, 'oldCellY' => 0, 'newCellX' => 0, 'newCellY' => 0]
-    //         ],
-    //         'horizontal cell change' => [
-    //             /* initialX, initialY */ 8.0, 5.0,
-    //             /* newX, newY */       12.0, 5.0,
-    //             /* cellSize */         10.0,
-    //             /* expectedResult */   ['oldCellX' => 0, 'oldCellY' => 0, 'newCellX' => 1, 'newCellY' => 0]
-    //         ],
-    //         'vertical cell change' => [
-    //             /* initialX, initialY */ 5.0, 9.0,
-    //             /* newX, newY */       5.0, 11.0,
-    //             /* cellSize */         10.0,
-    //             /* expectedResult */   ['oldCellX' => 0, 'oldCellY' => 0, 'newCellX' => 0, 'newCellY' => 1]
-    //         ],
-    //         'diagonal cell change' => [
-    //             /* initialX, initialY */ 18.0, 19.0,
-    //             /* newX, newY */       21.0, 22.0,
-    //             /* cellSize */         20.0,
-    //             /* expectedResult */   ['oldCellX' => 0, 'oldCellY' => 0, 'newCellX' => 1, 'newCellY' => 1]
-    //         ],
-    //         'movement from a boundary' => [
-    //             /* initialX, initialY */ 10.0, 10.0,
-    //             /* newX, newY */       9.9, 9.9,
-    //             /* cellSize */         10.0,
-    //             /* expectedResult */   ['oldCellX' => 1, 'oldCellY' => 1, 'newCellX' => 0, 'newCellY' => 0]
-    //         ],
-    //     ];
-    // }
-
     /**
      * @dataProvider \Tests\DataProviders\UtilsDataProvider::validCoordinatesProvider
      */
@@ -96,18 +22,13 @@ class UnitUtilsFunctionsTest extends TestCase
         int $numCells,
         array $expectedResult
     ): void {
-        // ARRANGE: Create a unit with given coordinates
         $unit = new Unit(1, $unitX, $unitY);
-
-        // ACT: Get cell coordinates
         $result = UnitUtilsFunctions::getCellCoordinates($unit, $cellSize, $numCells);
-
-        // ASSERT: Verify correct cell coordinates
         $this->assertEquals($expectedResult, $result);
     }
 
     /**
-     * @dataProvider invalidParametersProvider
+     * @dataProvider \Tests\DataProviders\UtilsDataProvider::invalidParametersProvider
      */
     public function testGetCellCoordinatesInvalidParameters(
         float $unitX,
@@ -116,91 +37,25 @@ class UnitUtilsFunctionsTest extends TestCase
         int $numCells,
         string $expectedExceptionMessage
     ): void {
-        // ARRANGE: Create a unit
         $unit = new Unit(1, $unitX, $unitY);
-
-        // ASSERT: Expect exception
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage($expectedExceptionMessage);
-
-        // ACT: Call function with invalid parameters
         UnitUtilsFunctions::getCellCoordinates($unit, $cellSize, $numCells);
     }
 
-
-
-        /**
-     * Data provider for invalid parameter scenarios
-     */
-    public static function invalidParametersProvider(): array
-    {
-        return [
-            'zero cell size' => [
-                /* unitX, unitY */ 100.0, 100.0,
-                /* cellSize */ 0.0,
-                /* numCells */ 10,
-                /* expectedMessage */ 'Cell size must be greater than 0, got: 0'
-            ],
-            'negative cell size' => [
-                /* unitX, unitY */ 100.0, 100.0,
-                /* cellSize */ -50.0,
-                /* numCells */ 10,
-                /* expectedMessage */ 'Cell size must be greater than 0, got: -50'
-            ],
-            'zero num cells' => [
-                /* unitX, unitY */ 100.0, 100.0,
-                /* cellSize */ 60.0,
-                /* numCells */ 0,
-                /* expectedMessage */ 'Number of cells must be greater than 0, got: 0'
-            ],
-            'negative num cells' => [
-                /* unitX, unitY */ 100.0, 100.0,
-                /* cellSize */ 60.0,
-                /* numCells */ -5,
-                /* expectedMessage */ 'Number of cells must be greater than 0, got: -5'
-            ],
-            'negative unit x' => [
-                /* unitX, unitY */ -10.0, 100.0,
-                /* cellSize */ 60.0,
-                /* numCells */ 10,
-                /* expectedMessage */ 'Unit coordinates cannot be negative. Got x: -10, y: 100'
-            ],
-            'negative unit y' => [
-                /* unitX, unitY */ 100.0, -20.0,
-                /* cellSize */ 60.0,
-                /* numCells */ 10,
-                /* expectedMessage */ 'Unit coordinates cannot be negative. Got x: 100, y: -20'
-            ],
-            'both negative coordinates' => [
-                /* unitX, unitY */ -50.0, -75.0,
-                /* cellSize */ 60.0,
-                /* numCells */ 10,
-                /* expectedMessage */ 'Unit coordinates cannot be negative. Got x: -50, y: -75'
-            ]
-        ];
-    }
-
-
-    // 2: Tests for calculateNewPosition()
-    
     /**
-     * @dataProvider positionProvider
+     * @dataProvider \Tests\DataProviders\UtilsDataProvider::positionProvider
      */
     public function testCalculateNewPosition(float $initialX, float $initialY, float $speed, int $worldSize): void
     {
-        // ARRANGE: Create a unit and set its initial position.
         $unit = new Unit(1, $initialX, $initialY);
-
-        // ACT: Calculate the new position for the unit.
         $newPosition = UnitUtilsFunctions::calculateNewPosition($unit, $speed, $worldSize);
 
-        // ASSERT: Verify the new position is within world boundaries.
         $this->assertGreaterThanOrEqual(0, $newPosition['x']);
         $this->assertLessThanOrEqual($worldSize, $newPosition['x']);
         $this->assertGreaterThanOrEqual(0, $newPosition['y']);
         $this->assertLessThanOrEqual($worldSize, $newPosition['y']);
 
-        // ASSERT: If speed is 0, the position should not change.
         if ($speed === 0.0) {
             $this->assertEquals($initialX, $newPosition['x']);
             $this->assertEquals($initialY, $newPosition['y']);
@@ -208,49 +63,23 @@ class UnitUtilsFunctionsTest extends TestCase
     }
 
     /**
-     * Data provider for testCalculateNewPosition.
-     *
-     * Provides scenarios including:
-     * - Normal speed
-     * - Zero speed (unit should not move)
-     * - High speed (to test boundary enforcement)
-     */
-    public static function positionProvider(): array
-    {
-        return [
-            'normal speed in middle' => [500.0, 500.0, 5.0, 1000],
-            'zero speed' => [500.0, 500.0, 0.0, 1000],
-            'high speed near top-left boundary' => [1.0, 1.0, 50.0, 1000],
-            'high speed near bottom-right boundary' => [999.0, 999.0, 50.0, 1000],
-        ];
-    }
-
-
-    // 3: Tests for checkProximityInCell()
-
-    /**
-     * @dataProvider proximityProvider
+     * @dataProvider \Tests\DataProviders\UtilsDataProvider::proximityProvider
      */
     public function testCheckProximityInCell(?Unit $head, float $proximityDistanceSquare, array $expectedStates): void
     {
-        // ARRANGE: The test setup is done via the data provider, which builds the linked list of units.
-
-        // ACT: Run the proximity check on the provided list of units.
         UnitUtilsFunctions::checkProximityInCell($head, $proximityDistanceSquare);
 
-        // Handle the case where no assertions are expected.
         if (empty($expectedStates)) {
             $this->assertTrue(true, 'Test confirms the function handles a null head without errors.');
             return;
         }
 
-        // ASSERT: Check the `isNear` state of each unit against the expected outcome.
         foreach ($expectedStates as $unitId => $expectedIsNear) {
             $currentUnit = $head;
             $found = false;
             while ($currentUnit !== null) {
                 if ($currentUnit->id === $unitId) {
-                    $this->assertEquals( // if match, continue..
+                    $this->assertEquals(
                         $expectedIsNear,
                         $currentUnit->isNear,
                         "Unit ID {$unitId} has an incorrect isNear state."
@@ -264,78 +93,63 @@ class UnitUtilsFunctionsTest extends TestCase
         }
     }
 
-    /**
-     * Data provider for testCheckProximityInCell.
-     *
-     * Provides scenarios including:
-     * - Two units that are near
-     * - Two units that are far
-     * - Multiple units with mixed proximity
-     * - A single unit (should not change state)
-     * - An empty list (null head)
+     /**
+     * @dataProvider \Tests\DataProviders\UtilsDataProvider::addUnitProvider
      */
-    public static function proximityProvider(): array
+    public function testAddUnit(Unit $unitToAdd, ?Unit $head): void
     {
-        // 1: 3wo units, near each other 
-        $unitA_near = new Unit(1, 10, 10);
-        $unitB_near = new Unit(2, 12, 12);
-        $unitC_near = new Unit(3,0,0);
-        $unitA_near->next = $unitB_near;
-        $unitB_near->prev = $unitA_near;
-        $unitB_near->next = $unitC_near;
-        $unitC_near->prev = $unitB_near;
-        $scenario1 = [
-            'head' => $unitA_near,
-            'proximityDistanceSquare' => 49.0, // (7*7)
-            'expectedStates' => [1 => true, 2 => true, 3 => false]
-        ];
+        // ARRANGE: Keep a reference to the original head to check its pointers later
+        $originalHead = $head;
 
-        // 2: Two units, far from each other 
-        $unitA_far = new Unit(3, 10, 10);
-        $unitB_far = new Unit(4, 20, 20);
-        $unitA_far->next = $unitB_far;
-        $unitB_far->prev = $unitA_far;
-        $scenario2 = [
-            'head' => $unitA_far,
-            'proximityDistanceSquare' => 49.0, 
-            'expectedStates' => [3 => false, 4 => false]
-        ];
+        // ACT: Call the function to add the unit to the list.
+        // The $head variable is passed by reference and will be modified.
+        UnitUtilsFunctions::addUnit($unitToAdd, $head);
 
-        // 3: Three units, A and B are near, C is far 
-        $unitA_mix = new Unit(5, 10, 10);
-        $unitB_mix = new Unit(6, 11, 11);
-        $unitC_mix = new Unit(7, 100, 100);
-        $unitA_mix->next = $unitB_mix;
-        $unitB_mix->prev = $unitA_mix;
-        $unitB_mix->next = $unitC_mix;
-        $unitC_mix->prev = $unitB_mix;
-        $scenario3 = [
-            'head' => $unitA_mix,
-            'proximityDistanceSquare' => 49.0, 
-            'expectedStates' => [5 => true, 6 => true, 7 => false]
-        ];
+        // ASSERT:
+        // 1. The head variable should now be the new unit.
+        $this->assertSame($unitToAdd, $head, 'Head was not updated to the new unit.');
+        
+        // 2. The new head's pointers should be set correctly.
+        $this->assertNull($head->prev, 'New head\'s prev pointer should be null.');
+        $this->assertSame($originalHead, $head->next, 'New head\'s next pointer should point to the original head.');
+        
+        // 3. If there was an original head, its 'prev' pointer should be updated to the new unit.
+        if ($originalHead !== null) {
+            $this->assertSame($unitToAdd, $originalHead->prev, 'Original head\'s prev pointer was not updated.');
+        }
+    }
 
-        // 4: Single unit in cell 
-        $unit_single = new Unit(8, 50, 50);
-        $scenario4 = [
-            'head' => $unit_single,
-            'proximityDistanceSquare' => 49.0,
-            'expectedStates' => [8 => false]
-        ];
+    /**
+     * @dataProvider \Tests\DataProviders\UtilsDataProvider::unlinkUnitProvider
+     */
+    public function testUnlinkUnit(Unit $unitToUnlink, ?Unit $head): void
+    {
+        // ARRANGE: Get references to the original surrounding nodes and head
+        $originalHead = $head;
+        $prevNode = $unitToUnlink->prev;
+        $nextNode = $unitToUnlink->next;
 
-        // 5: Empty cell (null head) 
-        $scenario5 = [
-            'head' => null,
-            'proximityDistanceSquare' => 49.0,
-            'expectedStates' => []
-        ];
+        // ACT: Call the unlink function. $head is passed by reference and may be modified.
+        UnitUtilsFunctions::unlinkUnit($unitToUnlink, $head);
 
-        return [
-            'two units near' => $scenario1,
-            'two units far' => $scenario2,
-            'three units mixed proximity' => $scenario3,
-            'single unit' => $scenario4,
-            'empty (null) list' => $scenario5,
-        ];
+        // ASSERT:
+        // 1. The unlinked unit's pointers must be null.
+        $this->assertNull($unitToUnlink->prev, 'Unlinked unit\'s prev pointer should be null.');
+        $this->assertNull($unitToUnlink->next, 'Unlinked unit\'s next pointer should be null.');
+
+        // 2. Check if the head of the list was updated correctly.
+        if ($originalHead === $unitToUnlink) {
+            $this->assertSame($nextNode, $head, 'Head was not updated to the next node.');
+        } else {
+            $this->assertSame($originalHead, $head, 'Head should not have changed.');
+        }
+
+        // 3. Check if the surrounding nodes are correctly rewired.
+        if ($prevNode !== null) {
+            $this->assertSame($nextNode, $prevNode->next, 'The previous node\'s next pointer is incorrect.');
+        }
+        if ($nextNode !== null) {
+            $this->assertSame($prevNode, $nextNode->prev, 'The next node\'s prev pointer is incorrect.');
+        }
     }
 }

@@ -4,8 +4,17 @@ session_start();
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
-require_once 'src/Grid.php';
-require_once 'src/ApiActions.php';
+// require_once 'src/Grid.php';
+// require_once 'src/ApiActions.php';
+// 2. ADD the composer autoloader
+require_once __DIR__ . '/vendor/autoload.php';
+
+// 3. ADD 'use' statements for the namespaced classes you need
+use App\Grid;
+use App\Unit;
+use App\ApiActions;
+// Note: ApiActions.php likely needs a namespace too, but we'll focus on the fatal error first.
+
 
 // Read the configuration file once.
 $configFile = 'config.json';

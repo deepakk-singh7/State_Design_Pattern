@@ -1,5 +1,7 @@
 <?php
 
+namespace App;
+
 /**
  * Defines constants for the API actions.
  * Using constants prevents typos and makes the code easier to maintain.
