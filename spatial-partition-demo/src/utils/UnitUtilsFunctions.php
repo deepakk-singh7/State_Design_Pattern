@@ -84,39 +84,6 @@ class UnitUtilsFunctions
         $head = $unit;
     }
 
-
-    // /**
-    //  * Updates a unit's position and calculates its old and new grid cell coordinates.
-    //  *
-    //  * @param Unit $unit The unit object (passed by reference).
-    //  * @param float $x The new x-coordinate.
-    //  * @param float $y The new y-coordinate.
-    //  * @param float $cellSize The size of a grid cell.
-    //  * @return array An associative array with old/new cell coordinates.
-    //  */
-    // public static function updateAndCalculateCoordinates(Unit $unit, float $x, float $y, float $cellSize): array
-    // {
-    //     // 1. Calculate old cell coordinates from the unit's current position.
-    //     $oldCellX = (int)($unit->x / $cellSize);
-    //     $oldCellY = (int)($unit->y / $cellSize);
-
-    //     // 2. Update the unit's position (this modifies the original object).
-    //     $unit->x = $x;
-    //     $unit->y = $y;
-
-    //     // 3. Calculate new cell coordinates from the updated position.
-    //     $newCellX = (int)($unit->x / $cellSize);
-    //     $newCellY = (int)($unit->y / $cellSize);
-
-    //     // 4. Return all values in a readable associative array.
-    //     return [
-    //         'oldCellX' => $oldCellX,
-    //         'oldCellY' => $oldCellY,
-    //         'newCellX' => $newCellX,
-    //         'newCellY' => $newCellY,
-    //     ];
-    // }
-
     /**
      * Calculates a new random position for a unit, ensuring it stays within world boundaries.
      *
