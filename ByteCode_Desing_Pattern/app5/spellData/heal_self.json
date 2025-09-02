@@ -1,0 +1,12 @@
+{
+  "name": "Heal Self",
+  "description": "Restore 20 health points to yourself",
+  "effects": [
+    {
+      "target": "self",
+      "stat": "health",
+      "operation": "add",
+      "value": 20
+    }
+  ]
+}

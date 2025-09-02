@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Queue Demo: Audio System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Audio Request Simulator</h1>
+        <p>Send sound requests to the server's event queue.</p>
+        
+        <div class="controls">
+            <button id="jump-btn" data-sound="JUMP" data-volume="80">Player Jump</button>
+            <button id="hit-btn" data-sound="ENEMY_HIT" data-volume="100">Enemy Hit</button>
+            <button id="coin-btn" data-sound="COIN" data-volume="70">Collect Coin</button>
+            <button id="spam-btn" data-sound="ENEMY_HIT" data-volume="100">Spam 5 Enemy Hits</button>
+        </div>
+
+        <div class="engine-controls">
+            <button id="process-btn">PROCESS 1 FRAME (Update Audio)</button>
+            <button id="reset-btn">Reset Server Queue</button>
+        </div>
+        
+        <div class="console">
+            <div class="console-header">SERVER LOG</div>
+            <div id="log-output"></div>
+        </div>
+    </div>
+    <script src="js/app.js"></script>
+</body>
+</html>

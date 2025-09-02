@@ -1,0 +1,12 @@
+{
+  "name": "Arcane Missile",
+  "description": "Deals 12 damage to the opponent",
+  "effects": [
+    {
+      "target": "opponent",
+      "stat": "health",
+      "operation": "subtract",
+      "value": 12
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "Agility Boost",
+  "description": "Increase your agility by 3",
+  "effects": [
+    {
+      "target": "self",
+      "stat": "agility",
+      "operation": "add",
+      "value": 3
+    }
+  ]
+}

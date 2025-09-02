@@ -1,0 +1,2 @@
+This is the demo of inheritance, where if one component need to interact to other, it must be inheriate its parent, 
+which lead to the unwanted properties and methods down the class and also produces some serious issues like diamond problems. 

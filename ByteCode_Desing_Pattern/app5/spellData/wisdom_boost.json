@@ -1,0 +1,12 @@
+{
+  "name": "Wisdom Boost",
+  "description": "Increases your wisdom by 5",
+  "effects": [
+    {
+      "target": "self",
+      "stat": "wisdom",
+      "operation": "add",
+      "value": 5
+    }
+  ]
+}

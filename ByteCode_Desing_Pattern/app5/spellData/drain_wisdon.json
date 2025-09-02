@@ -1,0 +1,12 @@
+{
+  "name": "Drain Wisdom",
+  "description": "Reduce opponent's wisdom by 3",
+  "effects": [
+    {
+      "target": "opponent",
+      "stat": "wisdom",
+      "operation": "subtract",
+      "value": 3
+    }
+  ]
+}

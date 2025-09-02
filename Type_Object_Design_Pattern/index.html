@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Type Object Pattern Demo</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-4 sm:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-cyan-400">Monster Spawner</h1>
+            <p class="text-gray-400 mt-2">A demonstration of the <span class="font-mono bg-gray-700 px-2 py-1 rounded">Type Object</span> design pattern.</p>
+        </header>
+
+        <section class="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
+            <h2 class="text-2xl font-semibold mb-4 border-b-2 border-gray-700 pb-2">Available Breeds</h2>
+            <div id="breed-selector" class="flex flex-wrap gap-4">
+                <div class="text-gray-400">Loading breeds from server...</div>
+            </div>
+        </section>
+
+        <main>
+            <h2 class="text-2xl font-semibold mb-4">Spawned Monsters</h2>
+            <div id="spawn-area" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Monster cards will be dynamically inserted here -->
+            </div>
+        </main>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

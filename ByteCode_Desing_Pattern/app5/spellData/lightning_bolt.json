@@ -1,0 +1,12 @@
+{
+  "name": "Lightning Bolt",
+  "description": "Strikes opponent with lightning for 10 damage",
+  "effects": [
+    {
+      "target": "opponent",
+      "stat": "health",
+      "operation": "subtract",
+      "value": 10
+    }
+  ]
+}

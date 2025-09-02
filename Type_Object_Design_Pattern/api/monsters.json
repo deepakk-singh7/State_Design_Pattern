@@ -1,0 +1,27 @@
+{
+  "Slime": {
+    "health": 20,
+    "attack": "The slime oozes corrosively!",
+    "image": "https://placehold.co/150x150/3B9C9C/FFFFFF?text=Slime"
+  },
+  "Troll": {
+    "health": 50,
+    "attack": "The troll clubs you viciously!",
+    "image": "https://placehold.co/150x150/5D8233/FFFFFF?text=Troll"
+  },
+  "Dragon": {
+    "health": 250,
+    "attack": "The dragon breathes a torrent of fire!",
+    "image": "https://placehold.co/150x150/A75D5D/FFFFFF?text=Dragon"
+  },
+  "Dragon1": {
+    "health": 30,
+    "attack": "The dragon breathes a torrent of fire!",
+    "image": "https://placehold.co/150x150/A75D5D/FFFFFF?text=Dragon"
+  },
+   "Dragon2": {
+    "health": 30,
+    "attack": "The dragon breathes a torrent of fire!",
+    "image": "https://placehold.co/150x150/A75D5D/FFFFFF?text=Dragon"
+  }
+}

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wizard Duel Arena</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Wizard Duel Arena</h1>
+        
+        <div id="turn-info" class="turn-info">Loading...</div>
+        
+        <div id="game-log" class="game-log">
+            <div>Initializing battle...</div>
+        </div>
+        
+        <div id="wizards-container" class="wizards">
+            <div class="loading">Loading wizards...</div>
+        </div>
+    </div>
+    
+    <div id="game-over-modal" class="modal">
+        <div class="modal-content">
+            <h2>Game Over!</h2>
+            <p id="winner-text"></p>
+            <button onclick="initGame()" class="restart-btn">Play Again</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
